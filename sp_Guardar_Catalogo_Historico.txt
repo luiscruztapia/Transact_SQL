@@ -1,0 +1,20 @@
+USE [xxDBxx]
+GO
+
+/****** Object:  StoredProcedure [dbo].[sp_Guardar_Catalogo_Historico]    ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[sp_Guardar_Catalogo_Historico](@Mes int, @Anio int) AS
+declare @csql  varchar(800)
+delete from Catalogo_Historico where Mes=@Mes and Anio=@Anio
+set @csql = 'insert into Catalogo_Historico (Mes, Anio, Cuenta, Clasificacion, Movimiento, TipoCuenta, Nivel, Saldo_Anterior, MovDeudor, MovAcreedor, SaldoFinal, Presupuesto, Ejecutado, USSaldo_Anterior, USMovDeudor, USMovAcreedor, USSaldoFinal, USPresupuesto, USEjecutado) ' + 
+' select ' + convert(varchar, @Mes) + ', ' + convert(varchar, @Anio) + ', cuenta, Clasificacion, Movimiento, TipoCuenta, Nivel, Saldo_anterior, Movdeudor, Movacreedor, Monto, PMes' + convert(varchar, @Mes) + ', Ejec' + convert(varchar, @mes) +  ', USSaldo_anterior, USMovdeudor, USMovacreedor, USMonto, USPMes' + convert(varchar, @Mes) + ', USEjec' + convert(varchar, @mes) +  ' from ' + ' catalogo_de_cuentas '
+exec (@csql)
+
+
+GO
+

@@ -1,0 +1,51 @@
+USE [xxDBxx]
+GO
+
+/****** Object:  StoredProcedure [dbo].[sp_kardexresdeptoclases]    ******/
+SET ANSI_NULLS OFF
+GO
+
+SET QUOTED_IDENTIFIER OFF
+GO
+
+CREATE PROCEDURE [dbo].[sp_kardexresdeptoclases](@ccodigosucursal varchar(3), @cbodega varchar(3), @cMes varchar(2), @cAnio varchar(5))  AS
+declare @bodega int
+declare @Mes int
+declare @Anio int
+declare @codigosucursal int
+
+set @codigosucursal=convert(int, @ccodigosucursal)
+set @bodega=convert(int, @cbodega)
+set  @Mes = convert(int, @cMes)
+set @Anio = convert(int, @cAnio)
+if @Mes<> 0 begin
+
+select resumen.*, departamentos.Nombre as NombreDepto, clases.Nombre as NombreClase from departamentos, clases_de_productos clases,
+(SELECT  inventario.codigo_departamento, inventario.codigo_clase, sum(SaldosIniciales.S_Saldo_Inicial) si, sum(SaldosIniciales.S_Compras_Mes) compras , sum(SaldosIniciales.S_Entradas_Mes) Entradas, 
+        sum(SaldosIniciales.S_Salidas_Mes) salidas, sum(SaldosIniciales.S_Transferencias_Mes) transferencias, sum(SaldosIniciales.S_Bonificaciones_Mes) Bonificaciones, 
+        sum(SaldosIniciales.S_Ventas_Mes) CostoVentas, sum(SaldosIniciales.S_DevClientes_Mes) Devclientes, sum(SaldosIniciales.S_DevProv_Mes) devProv 
+FROM    SaldosIniciales SaldosIniciales INNER JOIN
+        Inventario ON SaldosIniciales.Codigo = Inventario.Codigo
+        where SaldosIniciales.bodega=@bodega and Mes=@Mes and Anio=@Anio and codigosucursal=@codigosucursal
+	group by inventario.codigo_departamento, inventario.codigo_clase) resumen 
+        where resumen.codigo_departamento=departamentos.codigo_departamento and
+	resumen.codigo_departamento=clases.codigo_departamento and
+        resumen.codigo_clase=clases.codigo_clase
+	order by resumen.codigo_departamento, resumen.codigo_clase
+end
+else begin
+select resumen.*, departamentos.Nombre as NombreDepto, clases.Nombre as NombreClase from departamentos, clases_de_productos clases,
+(SELECT  inventario.codigo_departamento, inventario.codigo_clase, sum(SaldosIniciales.S_Saldo_Inicial) si, sum(SaldosIniciales.S_Compras_Mes) compras , sum(SaldosIniciales.S_Entradas_Mes) Entradas, 
+        sum(SaldosIniciales.S_Salidas_Mes) salidas, sum(SaldosIniciales.S_Transferencias_Mes) transferencias, sum(SaldosIniciales.S_Bonificaciones_Mes) Bonificaciones, 
+        sum(SaldosIniciales.S_Ventas_Mes) CostoVentas, sum(SaldosIniciales.S_DevClientes_Mes) Devclientes, sum(SaldosIniciales.S_DevProv_Mes) devProv 
+FROM    Inventario_por_bodegas SaldosIniciales INNER JOIN
+        Inventario ON SaldosIniciales.Codigo = Inventario.Codigo
+        where SaldosIniciales.bodega=@bodega and saldosiniciales.codigosucursal=@codigosucursal
+	group by inventario.codigo_departamento, inventario.codigo_clase) resumen 
+        where resumen.codigo_departamento=departamentos.codigo_departamento and
+	resumen.codigo_departamento=clases.codigo_departamento and
+        resumen.codigo_clase=clases.codigo_clase
+	order by resumen.codigo_departamento, resumen.codigo_clase
+end
+GO
+

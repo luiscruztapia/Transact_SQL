@@ -1,0 +1,26 @@
+USE [xxDBxx]
+GO
+
+/****** Object:  StoredProcedure [dbo].[sp_select_inventario_codant_1]   ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER OFF
+GO
+
+/****** Object:  Stored Procedure dbo.sp_select_inventario_codant_1    Script Date: 06/11/01 11:22:09 a.m. ******/
+CREATE PROCEDURE [dbo].[sp_select_inventario_codant_1](@codigo as nvarchar(15) ,  @bodega as integer)  AS 
+SELECT Inventario_por_Bodegas.*, Inventario.Nombre AS Nombre, 
+    Inventario.*, 
+    Clases_de_Productos.Impuesto AS Impuesto,
+    Clases_de_Productos.Porcentaje_de_Impuesto AS Porcentaje_de_Impuesto
+FROM Inventario_por_Bodegas INNER JOIN
+    Inventario ON 
+    Inventario_por_Bodegas.Codigo = Inventario.Codigo INNER JOIN
+    Clases_de_Productos ON 
+    Inventario.Codigo_Departamento = Clases_de_Productos.Codigo_Departamento
+     AND 
+    Inventario.Codigo_Clase = Clases_de_Productos.Codigo_Clase and Inventario.Codigo_anterior=@codigo and inventario_por_bodegas.Bodega = @bodega
+
+GO
+

@@ -1,0 +1,48 @@
+USE [xxDBxx]
+GO
+
+/****** Object:  StoredProcedure [dbo].[sp_estadisticaprov]    ******/
+SET ANSI_NULLS OFF
+GO
+
+SET QUOTED_IDENTIFIER OFF
+GO
+
+CREATE PROCEDURE [dbo].[sp_estadisticaprov](@fechaini as varchar(8), @fechafin as varchar(8), @codigoprov as varchar(5)) AS
+SELECT inventario.proveedor, inventario.nombre, inventario_por_bodegas.codigosucursal, inventario_por_bodegas.bodega, inventario_por_bodegas.codigo, isnull(dc.cantidad,0) cantcompra, isnull(df.cantidad,0) cantventa, inventario.costosugerido
+FROM         dbo.Inventario_por_Bodegas  INNER JOIN
+   dbo.Inventario ON dbo.Inventario_por_Bodegas.Codigo = dbo.Inventario.Codigo LEFT OUTER JOIN
+(
+SELECT     SUM(dbo.Detalle_Compras.Cantidad) AS Cantidad, dbo.Detalle_Compras.CodigoSucursal, dbo.Detalle_Compras.Bodega, 
+                      dbo.Detalle_Compras.Codigo_Producto
+FROM         dbo.Detalle_Compras INNER JOIN
+                      dbo.Compras ON dbo.Detalle_Compras.CodigoSucursal = dbo.Compras.CodigoSucursal AND dbo.Detalle_Compras.Tipo = dbo.Compras.Tipo AND 
+                      dbo.Detalle_Compras.Codigo_Proveedor = dbo.Compras.Codigo_Proveedor AND 
+                      dbo.Detalle_Compras.Codigo_Factura = dbo.Compras.Numero_de_Documento INNER JOIN
+                      dbo.Inventario ON dbo.Detalle_Compras.Codigo_Producto = dbo.Inventario.Codigo
+WHERE     (dbo.Compras.Fecha>=@fechaini AND dbo.Compras.Fecha<=@fechafin) and inventario.Proveedor=@codigoprov
+GROUP BY dbo.Detalle_Compras.CodigoSucursal, dbo.Detalle_Compras.Bodega, dbo.Detalle_Compras.Codigo_Producto
+)
+ dc
+ON dbo.Inventario_por_Bodegas.CodigoSucursal = dc.CodigoSucursal AND 
+                      dbo.Inventario_por_Bodegas.Bodega = dc.Bodega AND 
+                      dbo.Inventario_por_Bodegas.Codigo = dc.Codigo_Producto LEFT OUTER JOIN
+
+(
+SELECT     SUM(dbo.Detalle_Facturas.Cantidad) AS Cantidad, dbo.Detalle_Facturas.CodigoSucursal, dbo.Detalle_Facturas.Bodega, 
+                      dbo.Detalle_Facturas.Codigo_Producto
+FROM         dbo.Detalle_Facturas INNER JOIN
+                      dbo.Facturas ON dbo.Detalle_Facturas.CodigoSucursal = dbo.Facturas.CodigoSucursal AND dbo.Detalle_Facturas.TipoDoc = dbo.Facturas.TipoDoc AND
+                       dbo.Detalle_Facturas.Tipo = dbo.Facturas.Tipo AND dbo.Detalle_Facturas.Codigo_Factura = dbo.Facturas.Numero_de_Documento AND 
+                      dbo.Detalle_Facturas.Serie = dbo.Facturas.Serie INNER JOIN
+                      dbo.Inventario ON dbo.Detalle_Facturas.Codigo_Producto = dbo.Inventario.Codigo
+WHERE     (dbo.Facturas.Anulada = 0) AND (dbo.Facturas.Fecha>=@fechaini AND dbo.Facturas.Fecha<=@fechafin) 
+and inventario.Proveedor=@codigoprov
+GROUP BY dbo.Detalle_Facturas.CodigoSucursal, dbo.Detalle_Facturas.Bodega, dbo.Detalle_Facturas.Codigo_Producto
+) df
+ON dbo.Inventario_por_Bodegas.CodigoSucursal = df.CodigoSucursal AND 
+                      dbo.Inventario_por_Bodegas.Bodega = df.Bodega AND 
+                      dbo.Inventario_por_Bodegas.Codigo = df.Codigo_Producto
+where  inventario.proveedor=@codigoprov
+GO
+

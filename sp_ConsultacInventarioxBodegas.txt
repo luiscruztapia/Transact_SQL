@@ -1,0 +1,14 @@
+USE [xxDBxx]
+GO
+
+/****** Object:  StoredProcedure [dbo].[sp_ConsultacInventarioxBodegas]   ******/
+SET ANSI_NULLS OFF
+GO
+
+SET QUOTED_IDENTIFIER OFF
+GO
+
+CREATE PROCEDURE [dbo].[sp_ConsultacInventarioxBodegas] ( @codigosucursal int, @ccod  varchar(20), @nbod  int) AS
+Select * from cInventario_por_bodegas where Codigo=@ccod and Bodega=@nbod and codigosucursal=@codigosucursal
+GO
+

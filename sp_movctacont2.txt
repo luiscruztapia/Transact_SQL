@@ -1,0 +1,29 @@
+USE [xxDBxx]
+GO
+
+/****** Object:  StoredProcedure [dbo].[sp_movctacont2]    ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[sp_movctacont2](@cuenta varchar(20), @fechaini varchar(8), @fechafin varchar(8)) AS 
+SELECT
+    Catalogo_de_Cuentas.Cuenta, Catalogo_de_Cuentas.Descripcion, Catalogo_de_Cuentas.Saldo_Anterior, Catalogo_de_Cuentas.USSaldo_Anterior, Catalogo_de_Cuentas.TipoCuenta,
+    Mes1, Mes2, Mes3, Mes4, Mes5, Mes6, Mes7, Mes8, Mes9, Mes10, Mes11, Mes12, 
+   usMes1, usMes2, usMes3, usMes4, usMes5, usMes6, usMes7, usMes8, usMes9, usMes10, usMes11, usMes12, 
+  Saldo_Inicial_Periodo, USSaldo_Inicial_Periodo,
+    Detalle_de_Diario.Comprobante, Detalle_de_Diario.Movimiento, Detalle_de_Diario.Monto, Detalle_de_Diario.MontoUS,
+    Comprobante_de_Diario.Fecha, Comprobante_de_Diario.Concepto ConceptoGeneral, Detalle_de_Diario.Concepto,
+    Ingresos_y_Egresos.Tipo, Comprobante_de_Diario.Anulado, Ingresos_y_Egresos.Numero_de_Documento
+FROM
+    dbo.Catalogo_de_Cuentas LEFT OUTER JOIN dbo.Detalle_de_Diario ON dbo.Catalogo_de_Cuentas.Cuenta = dbo.Detalle_de_Diario.Cuenta FULL OUTER JOIN dbo.Ingresos_y_Egresos RIGHT OUTER JOIN dbo.Detalle_de_Documentos ON dbo.Ingresos_y_Egresos.Numero_de_Documento = dbo.Detalle_de_Documentos.Numero_de_Documento AND dbo.Ingresos_y_Egresos.Tipo = dbo.Detalle_de_Documentos.Tipo AND dbo.Ingresos_y_Egresos.Banco = dbo.Detalle_de_Documentos.Banco RIGHT OUTER JOIN dbo.Comprobante_de_Diario ON dbo.Detalle_de_Documentos.TipoComprob = dbo.Comprobante_de_Diario.Tipo AND dbo.Detalle_de_Documentos.Comprobante = dbo.Comprobante_de_Diario.Comprobante AND dbo.Detalle_de_Documentos.Mes = 
+dbo.Comprobante_de_Diario.Mes AND dbo.Detalle_de_Documentos.Anio = dbo.Comprobante_de_Diario.Anio ON dbo.Detalle_de_Diario.Tipo = dbo.Comprobante_de_Diario.Tipo AND dbo.Detalle_de_Diario.Comprobante = dbo.Comprobante_de_Diario.Comprobante AND dbo.Detalle_de_Diario.Mes = dbo.Comprobante_de_Diario.Mes And dbo.Detalle_de_Diario.Anio = dbo.Comprobante_de_Diario.Anio 
+WHERE
+    Catalogo_de_Cuentas.cuenta=@cuenta  and ((Comprobante_de_Diario.Fecha>=@fechaini)) and (Comprobante_de_Diario.Fecha<=@fechafin) 
+ORDER BY
+    Catalogo_de_Cuentas.Cuenta ASC,
+    Comprobante_de_Diario.Fecha ASC
+GO
+

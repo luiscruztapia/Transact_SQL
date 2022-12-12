@@ -1,0 +1,20 @@
+USE [xxDBxx]
+GO
+
+/****** Object:  StoredProcedure [dbo].[sp_EstadisticaCantidadVendida]     ******/
+SET ANSI_NULLS OFF
+GO
+
+SET QUOTED_IDENTIFIER OFF
+GO
+
+CREATE PROCEDURE [dbo].[sp_EstadisticaCantidadVendida](@Fecha1 as varchar(8), @Fecha2 AS varchar(8)) AS
+UPDATE INVENTARIO SET CANTIDADVENDIDA=(SELECT isnull(SUM(CANTIDAD-CANTIDAD_DEVUELTA),0)
+FROM         dbo.Detalle_Facturas INNER JOIN
+                      dbo.Facturas ON dbo.Detalle_Facturas.CodigoSucursal = dbo.Facturas.CodigoSucursal AND dbo.Detalle_Facturas.TipoDoc = dbo.Facturas.TipoDoc AND
+                       dbo.Detalle_Facturas.Tipo = dbo.Facturas.Tipo AND dbo.Detalle_Facturas.Codigo_Factura = dbo.Facturas.Numero_de_Documento AND 
+                      dbo.Detalle_Facturas.Serie = dbo.Facturas.Serie
+WHERE dbo.Facturas.Fecha>=@Fecha1 and dbo.Facturas.Fecha<=@Fecha2 and dbo.Facturas.Anulada=0 and detalle_facturas.codigo_producto=Inventario.codigo)
+
+GO
+

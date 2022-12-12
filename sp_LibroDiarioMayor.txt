@@ -1,0 +1,49 @@
+USE [xxDBxx]
+GO
+
+/****** Object:  StoredProcedure [dbo].[sp_LibroDiarioMayor]   ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[sp_LibroDiarioMayor](@cMes varchar(2), @cAnio varchar(4)) AS
+declare @Mes int;
+declare @Anio int;
+set @Mes = convert(int, @cMes)
+set @Anio = convert(int, @cAnio)
+
+select Cat.*, detalle.tipo, detalle.Comprobante, detalle.Mes, detalle.Anio, isnull(detalle.Monto,0) as Monto, isnull(detalle.MovDet,1)  MovDet, isnull(Detalle.MontoUS,0), Detalle.Cuenta, Detalle.Numero, Detalle.DetConcepto, detalle.fecha,
+Detalle.ConceptoComp, Detalle.Generado, Detalle.Tipo_Documento,  Detalle.RefDocumento, Detalle.Tipo_Documento,  
+Detalle.Anulado, Detalle.RefDocumento, Detalle.Consolidacion, Detalle.Debe, Detalle.Haber, Detalle.Cierre, Detalle.Numero_de_Documento, Detalle.TipoDoc, Detalle.Banco from (SELECT     dbo.CatImprimir.Orden AS Orden, dbo.CatImprimir.Cta AS Cta, dbo.CatImprimir.Total AS Total, dbo.Catalogo_Historico.*, 
+                      dbo.Catalogo_de_Cuentas.Descripcion AS Descripcion, dbo.Catalogo_de_Cuentas.Movimiento as Mov
+FROM         dbo.Catalogo_de_Cuentas INNER JOIN
+                      dbo.Catalogo_Historico ON dbo.Catalogo_de_Cuentas.Cuenta = dbo.Catalogo_Historico.Cuenta RIGHT OUTER JOIN
+                      dbo.CatImprimir ON dbo.Catalogo_Historico.Cuenta = dbo.CatImprimir.Cta and 
+   dbo.Catalogo_Historico.Mes=@Mes and dbo.Catalogo_Historico.Anio=@Anio) Cat
+LEFT OUTER JOIN
+(SELECT     dbo.Detalle_de_Diario.Tipo, dbo.Detalle_de_Diario.Comprobante, dbo.Detalle_de_Diario.Mes, dbo.Detalle_de_Diario.Anio, ISNULL(dbo.Detalle_de_Diario.Monto,0.00) as Monto, ISNULL(dbo.Detalle_de_Diario.Movimiento,1) as  MovDet, ISNULL(dbo.Detalle_de_Diario.MontoUS,0) as MontoUS, dbo.Detalle_de_Diario.Cuenta, dbo.Detalle_de_Diario.Numero, dbo.Detalle_de_Diario.Concepto DetConcepto,  dbo.Comprobante_de_Diario.Fecha AS fecha, dbo.Comprobante_de_Diario.Concepto AS conceptoComp, 
+                      dbo.Comprobante_de_Diario.Generado AS generado, dbo.Comprobante_de_Diario.Tipo_Documento AS Tipo_Documento, 
+                      dbo.Comprobante_de_Diario.Anulado AS Anulado, dbo.Comprobante_de_Diario.RefDocumento AS RefDocumento, 
+                      dbo.Comprobante_de_Diario.Consolidacion AS Consolidacion, dbo.Comprobante_de_Diario.Debe AS Debe, 
+                      dbo.Comprobante_de_Diario.Haber AS Haber, dbo.Comprobante_de_Diario.Cierre AS Cierre, 
+                      dbo.Detalle_de_Documentos.Numero_de_Documento AS Numero_de_Documento, dbo.Detalle_de_Documentos.Tipo AS TipoDoc, 
+                      dbo.Detalle_de_Documentos.Banco AS Banco
+FROM         dbo.Ingresos_y_Egresos RIGHT OUTER JOIN
+                      dbo.Detalle_de_Documentos ON dbo.Ingresos_y_Egresos.Numero_de_Documento = dbo.Detalle_de_Documentos.Numero_de_Documento AND 
+                      dbo.Ingresos_y_Egresos.Tipo = dbo.Detalle_de_Documentos.Tipo AND 
+                      dbo.Ingresos_y_Egresos.Banco = dbo.Detalle_de_Documentos.Banco RIGHT OUTER JOIN
+                      dbo.Detalle_de_Diario INNER JOIN
+                      dbo.Comprobante_de_Diario ON dbo.Detalle_de_Diario.Tipo = dbo.Comprobante_de_Diario.Tipo AND 
+                      dbo.Detalle_de_Diario.Comprobante = dbo.Comprobante_de_Diario.Comprobante AND 
+                      dbo.Detalle_de_Diario.Mes = dbo.Comprobante_de_Diario.Mes AND dbo.Detalle_de_Diario.Anio = dbo.Comprobante_de_Diario.Anio ON 
+                      dbo.Detalle_de_Documentos.TipoComprob = dbo.Comprobante_de_Diario.Tipo AND 
+                      dbo.Detalle_de_Documentos.Comprobante = dbo.Comprobante_de_Diario.Comprobante AND 
+                      dbo.Detalle_de_Documentos.Mes = dbo.Comprobante_de_Diario.Mes AND dbo.Detalle_de_Documentos.Anio = dbo.Comprobante_de_Diario.Anio
+	where detalle_de_diario.Mes=@Mes and detalle_de_diario.Anio=@Anio and comprobante_de_diario.anulado=0) detalle
+ON Cat.Cta = Detalle.Cuenta where cat.mov=1 order by cat.orden
+
+
+GO
+

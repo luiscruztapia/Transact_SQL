@@ -1,0 +1,29 @@
+USE [xxDBxx]
+GO
+
+/****** Object:  StoredProcedure [dbo].[sp_ComparativoCatalogo]    ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[sp_ComparativoCatalogo](@Ano1 int, @Ano2 int, @Mes int) AS
+select c.cuenta, descripcion, isnull(SaldoInicial1,0) SaldoInicial1, isnull(SaldoInicial2, 0) SaldoInicial2, 
+isnull(SaldoFinal1,0) SaldoFinal1, isnull(SaldoFinal2,0) SaldoFinal2, 
+isnull(ejecutado1,0) ejecutado1, isnull(ejecutado2,0) ejecutado2, isnull(Presupuesto1,0) Presupuesto1, isnull(Presupuesto2,0) Presupuesto2, c.Movimiento, c.Clasificacion, c.TipoCuenta
+   from catalogo_de_cuentas c  LEFT OUTER JOIN
+        (select cuenta, 
+		sum(case when Anio=@Ano1 then Saldo_Anterior else 0 end) SaldoInicial1, 
+		sum(case when Anio=@Ano2 then Saldo_Anterior else 0 end) SaldoInicial2, 
+		sum(case when Anio=@Ano1 then SaldoFinal else 0 end) SaldoFinal1, 
+		sum(case when Anio=@Ano2 then SaldoFinal else 0 end) SaldoFinal2, 
+		sum(case when Anio=@Ano1 then Ejecutado else 0 end) Ejecutado1, 
+		sum(case when Anio=@Ano2 then Ejecutado else 0 end) Ejecutado2,
+		sum(case when Anio=@Ano1 then Presupuesto else 0 end) Presupuesto1,
+		sum(case when Anio=@Ano2 then Presupuesto else 0 end) Presupuesto2
+		from catalogo_historico where Mes=@Mes and (Anio=@Ano1 or Anio=@Ano2)
+			group by cuenta) Historico ON c.Cuenta = Historico.Cuenta
+
+GO
+

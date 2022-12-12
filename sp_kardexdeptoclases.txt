@@ -1,0 +1,47 @@
+USE [xxDBxx]
+GO
+
+/****** Object:  StoredProcedure [dbo].[sp_kardexdeptoclases]     ******/
+SET ANSI_NULLS OFF
+GO
+
+SET QUOTED_IDENTIFIER OFF
+GO
+
+CREATE PROCEDURE [dbo].[sp_kardexdeptoclases](@ccodigosucursal varchar(3), @cbodega varchar(3), @cMes varchar(2), @cAnio varchar(5))  AS
+declare @bodega int
+declare @Mes int
+declare @Anio int
+declare @codigosucursal int
+set @codigosucursal=convert(int, @ccodigosucursal)
+set @bodega=convert(int, @cbodega)
+set  @Mes = convert(int, @cMes)
+set @Anio = convert(int, @cAnio)
+if @Mes<> 0 begin
+SELECT  inventario.codigo_departamento, inventario.codigo_clase, SaldosIniciales.U_Saldo_Inicial si, SaldosIniciales.U_Compras_Mes compras , SaldosIniciales.U_Entradas_Mes Entradas, 
+        SaldosIniciales.U_Salidas_Mes salidas, SaldosIniciales.U_Transferencias_Mes transferencias, SaldosIniciales.U_Bonificaciones_Mes Bonificaciones, 
+        SaldosIniciales.U_Ventas_Mes Ventas, SaldosIniciales.S_DevClientes_Mes Devclientes, SaldosIniciales.U_DevProv_Mes devProv, departamentos.Nombre NombreDepto, clases.Nombre NombreClase, Inventario.Nombre as Producto, Inventario.codigo Codprod
+FROM    SaldosIniciales, Inventario, departamentos, clases_de_Productos clases
+        where 
+	SaldosIniciales.Codigo = Inventario.Codigo and
+	SaldosIniciales.bodega=@bodega and SaldosIniciales.Mes=@Mes and SaldosIniciales.Anio=@Anio and SaldosIniciales.codigosucursal=@codigosucursal and
+        Inventario.codigo_departamento=departamentos.codigo_departamento and
+	Inventario.codigo_departamento=clases.codigo_departamento and
+        Inventario.codigo_clase=clases.codigo_clase
+	order by Inventario.codigo_departamento
+end
+else begin
+SELECT  inventario.codigo_departamento, inventario.codigo_clase, SaldosIniciales.U_Saldo_Inicial si, SaldosIniciales.U_Compras_Mes compras , SaldosIniciales.U_Entradas_Mes Entradas, 
+        SaldosIniciales.U_Salidas_Mes salidas, SaldosIniciales.U_Transferencias_Mes transferencias, SaldosIniciales.U_Bonificaciones_Mes Bonificaciones, 
+        SaldosIniciales.U_Ventas_Mes Ventas, SaldosIniciales.S_DevClientes_Mes Devclientes, SaldosIniciales.U_DevProv_Mes devProv, departamentos.Nombre NombreDepto, clases.Nombre NombreClase, Inventario.Nombre as Producto, Inventario.codigo Codprod
+FROM    Inventario_por_bodegas SaldosIniciales, Inventario, departamentos, clases_de_Productos clases
+        where 
+	SaldosIniciales.Codigo = Inventario.Codigo and
+	SaldosIniciales.bodega=@bodega and SaldosIniciales.codigosucursal=@codigosucursal and 
+        Inventario.codigo_departamento=departamentos.codigo_departamento and
+	Inventario.codigo_departamento=clases.codigo_departamento and
+        Inventario.codigo_clase=clases.codigo_clase
+	order by Inventario.codigo_departamento
+end
+GO
+

@@ -1,0 +1,23 @@
+USE [xxDBxx]
+GO
+
+/****** Object:  StoredProcedure [dbo].[sp_ActualizarSaldoCompra]   ******/
+SET ANSI_NULLS OFF
+GO
+
+SET QUOTED_IDENTIFIER OFF
+GO
+
+CREATE PROCEDURE [dbo].[sp_ActualizarSaldoCompra]  (@CodigoSucursal int, @tipo tinyint, @CodigoProv varchar(5), @Documento varchar(10)) as 
+
+update Compras set compras.abonos= ( select isnull(sum(abono+descuento+retencion),0) from
+detalle_cxp
+where compras.numero_de_documento=detalle_cxp.codigo_factura and
+Compras.tipo=detalle_cxp.tipo and
+Compras.codigo_proveedor=detalle_cxp.codigo_proveedor and compras.codigosucursal=detalle_cxp.codigosucursal) where compras.tipo=@tipo and compras.codigo_proveedor=@CodigoProv and
+compras.CodigoSucursal=@CodigoSucursal and Compras.Numero_de_Documento=@Documento
+
+update Compras set Saldo=Total_neto-abonos where compras.tipo=@tipo and compras.codigo_proveedor=@CodigoProv and
+compras.CodigoSucursal=@CodigoSucursal and Compras.Numero_de_Documento=@Documento
+GO
+

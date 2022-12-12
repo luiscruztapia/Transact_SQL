@@ -1,0 +1,72 @@
+USE [xxDBxx]
+GO
+
+/****** Object:  StoredProcedure [dbo].[sp_Borrar_detalleCXP]     ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[sp_Borrar_detalleCXP](@codigosucursal int, @codigorecibo varchar(10), @tiporecibo tinyint) AS
+declare @codcliente varchar(10)
+
+update compras set abonos=0 from compras, detalle_cxp
+where detalle_cxp.codigo_factura=compras.Numero_de_documento and
+detalle_cxp.codigo_proveedor=compras.codigo_proveedor and
+detalle_cxp.tipo=compras.tipo and
+detalle_cxp.codigosucursal=compras.codigosucursal and
+detalle_cxp.codigo_recibo = @codigorecibo and
+detalle_cxp.tiporecibo= @tiporecibo and
+detalle_cxp.codigosucursal=@codigosucursal
+
+update Notas_de_Debito_CXP set abonos=0 from Notas_de_Debito_CXP, detalle_cxp
+where detalle_cxp.codigo_factura=Notas_de_Debito_CXP.Numero_de_documento and
+detalle_cxp.codigo_proveedor=Notas_de_Debito_CXP.codigo_proveedor and
+detalle_cxp.codigosucursal=Notas_de_Debito_CXP.codigosucursal and
+detalle_cxp.codigo_recibo = @codigorecibo and
+detalle_cxp.tiporecibo= @tiporecibo and
+detalle_cxp.codigosucursal=@codigosucursal
+
+
+delete from detalle_cxp where codigo_recibo=@codigorecibo 
+and tiporecibo=@tiporecibo and codigosucursal=@codigosucursal
+
+delete from detalle_cxp_nd where codigo_recibo=@codigorecibo 
+and tiporecibo=@tiporecibo and codigosucursal=@codigosucursal
+
+
+select @codcliente=proveedor from cuentas_por_pagar where codigo_recibo=@codigorecibo and 
+tiporecibo=@tiporecibo and codigosucursal=@codigosucursal
+
+
+update compras set abonos= (select isnull(sum(abono+retencion+descuento),0) from detalle_cxp
+where detalle_cxp.codigo_factura=compras.Numero_de_documento and
+detalle_cxp.tipo=compras.tipo and
+detalle_cxp.codigo_proveedor=compras.codigo_proveedor and detalle_cxp.codigosucursal=@codigosucursal) 
+from detalle_cxp, cuentas_por_pagar where
+	detalle_cxp.codigo_factura=compras.Numero_de_documento and
+	detalle_cxp.codigo_proveedor=compras.codigo_proveedor and
+	detalle_cxp.tipo=compras.tipo and
+	detalle_cxp.codigosucursal=compras.codigosucursal and
+	detalle_cxp.codigo_recibo=cuentas_por_pagar.codigo_recibo and
+	detalle_cxp.tiporecibo=cuentas_por_pagar.tiporecibo and
+	detalle_cxp.codigosucursal=cuentas_por_pagar.codigosucursal and
+	cuentas_por_pagar.proveedor=@codcliente and cuentas_por_pagar.anulado=0 and cuentas_por_pagar.codigosucursal=@codigosucursal
+
+update Notas_de_Debito_CXP set abonos= (select isnull(sum(abono+retencion+descuento),0) from detalle_cxp_nd
+where detalle_cxp_nd.codigo_ND=Notas_de_Debito_CXP.Numero_de_documento and
+detalle_cxp_nd.codigo_proveedor=Notas_de_Debito_CXP.codigo_proveedor) 
+from detalle_cxp_nd, cuentas_por_pagar where
+	detalle_cxp_nd.codigo_ND=Notas_de_Debito_CXP.Numero_de_documento and
+	detalle_cxp_nd.codigo_proveedor=Notas_de_Debito_CXP.codigo_proveedor and
+	detalle_cxp_nd.codigosucursal=Notas_de_debito_CXP.codigosucursal and
+	detalle_cxp_nd.codigo_recibo=cuentas_por_pagar.codigo_recibo and
+	detalle_cxp_nd.tiporecibo=cuentas_por_pagar.tiporecibo and
+	detalle_cxp_nd.codigosucursal=cuentas_por_pagar.codigosucursal and
+	cuentas_por_pagar.proveedor=@codcliente and cuentas_por_pagar.anulado=0 and cuentas_por_pagar.codigosucursal=@codigosucursal
+
+update compras set Saldo=Total_Neto-Abonos where codigo_proveedor=@codcliente and codigosucursal=@codigosucursal
+update Notas_de_debito_cxp set Saldo=Total_Neto-Abonos where codigo_proveedor=@codcliente and codigosucursal=@codigosucursal
+GO
+

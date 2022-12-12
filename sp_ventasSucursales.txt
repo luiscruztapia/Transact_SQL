@@ -1,0 +1,22 @@
+USE [xxDBxx]
+GO
+
+/****** Object:  StoredProcedure [dbo].[sp_ventasSucursales]    ******/
+SET ANSI_NULLS OFF
+GO
+
+SET QUOTED_IDENTIFIER OFF
+GO
+
+CREATE PROCEDURE [dbo].[sp_ventasSucursales] (@fecha1 as varchar(8), @fecha2 as varchar(8))
+ as
+SELECT  confadmin.codigosucursal, confadmin.empresa, isnull(dv.totaldev,0) totaldev, isnull(f.totalv,0) totalv, isnull(f.totaldesc1,0) totaldesc1, isnull(dv.totaldesc2,0) totaldesc2
+FROM         dbo.ConfAdmin LEFT OUTER JOIN
+                      (select codigosucursal, isnull(sum(total_en_ventas),0) totalv, isnull(sum(total_en_descuentos),0) totaldesc1 from facturas 
+		where facturas.fecha>=@fecha1 and facturas.fecha<=@fecha2
+		group by codigosucursal) f ON dbo.ConfAdmin.CodigoSucursal = f.CodigoSucursal LEFT OUTER JOIN
+                      (select codigosucursal, isnull(sum(total_neto),0) totaldev, isnull(sum(total_descuento),0) totaldesc2 from devoluciones_clientes 
+		where devoluciones_clientes.fecha>=@fecha1 and devoluciones_clientes.fecha<=@fecha2
+group by codigosucursal) dv ON dbo.ConfAdmin.CodigoSucursal = dv.CodigoSucursal
+GO
+

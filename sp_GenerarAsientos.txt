@@ -1,0 +1,380 @@
+USE [xxDBxx]
+GO
+
+/****** Object:  StoredProcedure [dbo].[sp_GenerarAsientos]   ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[sp_GenerarAsientos] (@Mes int, @Anio int, @MesCierre bit) AS
+declare @Saldo_Inicial_Periodo money
+declare @USSaldo_Inicial_Periodo money
+declare @saldo_anterior money
+declare @monto money
+declare @mes1 money
+declare @mes2 money
+declare @mes3 money
+declare @mes4 money
+declare @mes5 money
+declare @mes6 money
+declare @mes7 money
+declare @mes8 money
+declare @mes9 money
+declare @mes10 money
+declare @mes11 money
+declare @mes12 money
+declare @movdeudor money
+declare @movacreedor money
+declare @USsaldo_anterior money
+declare @USmonto money
+declare @USmes1 money
+declare @USmes2 money
+declare @USmes3 money
+declare @USmes4 money
+declare @USmes5 money
+declare @USmes6 money
+declare @USmes7 money
+declare @USmes8 money
+declare @USmes9 money
+declare @USmes10 money
+declare @USmes11 money
+declare @USmes12 money
+declare @USmovdeudor money
+declare @USmovacreedor money
+declare @Pmes1 money
+declare @Pmes2 money
+declare @Pmes3 money
+declare @Pmes4 money
+declare @Pmes5 money
+declare @Pmes6 money
+declare @Pmes7 money
+declare @Pmes8 money
+declare @Pmes9 money
+declare @Pmes10 money
+declare @Pmes11 money
+declare @Pmes12 money
+declare @USPmes1 money
+declare @USPmes2 money
+declare @USPmes3 money
+declare @USPmes4 money
+declare @USPmes5 money
+declare @USPmes6 money
+declare @USPmes7 money
+declare @USPmes8 money
+declare @USPmes9 money
+declare @USPmes10 money
+declare @USPmes11 money
+declare @USPmes12 money
+declare @Ejec1 money
+declare @Ejec2 money
+declare @Ejec3 money
+declare @Ejec4 money
+declare @Ejec5 money
+declare @Ejec6 money
+declare @Ejec7 money
+declare @Ejec8 money
+declare @Ejec9 money
+declare @Ejec10 money
+declare @Ejec11 money
+declare @Ejec12 money
+declare @USEjec1 money
+declare @USEjec2 money
+declare @USEjec3 money
+declare @USEjec4 money
+declare @USEjec5 money
+declare @USEjec6 money
+declare @USEjec7 money
+declare @USEjec8 money
+declare @USEjec9 money
+declare @USEjec10 money
+declare @USEjec11 money
+declare @USEjec12 money
+ 
+declare @cuenta char(12)
+declare @cuentapadre char(12)
+declare @nivel int
+declare @csql varchar(1500)
+declare @MesInicial int
+declare @MesAnterior int
+ 
+select top 1 @MesInicial=[Mes_inicial] from confconta
+ 
+update catalogo_de_cuentas
+set monto=0, mes1=0, mes2=0, mes3=0, mes4=0, mes5=0, mes6=0, mes7=0, mes8=0, mes9=0, mes10=0, mes11=0, mes12=0, movDeudor=0, movAcreedor=0, 
+USmonto=0, USmes1=0, USmes2=0, USmes3=0, USmes4=0, USmes5=0, USmes6=0, USmes7=0, USmes8=0, USmes9=0, USmes10=0, USmes11=0, USmes12=0, USmovDeudor=0, USmovAcreedor=0,
+Pmes1=0, Pmes2=0, Pmes3=0, Pmes4=0, Pmes5=0, Pmes6=0, Pmes7=0, Pmes8=0, Pmes9=0, Pmes10=0, Pmes11=0, Pmes12=0,
+USPmes1=0, USPmes2=0, USPmes3=0, USPmes4=0, USPmes5=0, USPmes6=0, USPmes7=0, USPmes8=0, USPmes9=0, USPmes10=0, USPmes11=0, USPmes12=0,
+Ejec1=0, Ejec2=0, Ejec3=0, Ejec4=0, Ejec5=0, Ejec6=0, Ejec7=0, Ejec8=0, Ejec9=0, Ejec10=0, Ejec11=0, Ejec12=0,
+USEjec1=0, USEjec2=0, USEjec3=0, USEjec4=0, USEjec5=0, USEjec6=0, USEjec7=0, USEjec8=0, USEjec9=0, USEjec10=0, USEjec11=0, USEjec12=0,
+Saldo_Inicial_Periodo=0, USSaldo_Inicial_Periodo=0
+where movimiento=2
+
+update catalogo_de_cuentas set movdeudor=0, movacreedor=0, usmovdeudor=0, usmovacreedor=0
+
+update dbo.detalle_de_diario set MontoUS=(case when isnull(Tipo_de_cambio_oficial,0)=0 then 0 else Monto/Cambio_del_dolar.Tipo_de_Cambio_Oficial end)
+FROM         dbo.Detalle_de_Diario INNER JOIN
+                      dbo.Comprobante_de_Diario ON dbo.Detalle_de_Diario.Tipo = dbo.Comprobante_de_Diario.Tipo AND 
+                      dbo.Detalle_de_Diario.Comprobante = dbo.Comprobante_de_Diario.Comprobante AND 
+                      dbo.Detalle_de_Diario.Mes = dbo.Comprobante_de_Diario.Mes AND dbo.Detalle_de_Diario.Anio = dbo.Comprobante_de_Diario.Anio LEFT OUTER JOIN
+                      dbo.Cambio_del_Dolar ON dbo.Comprobante_de_Diario.Fecha = dbo.Cambio_del_Dolar.Fecha
+where dbo.Detalle_de_Diario.Mes=@Mes and dbo.Detalle_de_Diario.Anio=@Anio
+
+update dbo.detalle_de_diario set MontoUS=0 where dbo.Detalle_de_Diario.Tipo=6 and dbo.detalle_de_diario.Mes=@Mes and dbo.detalle_de_diario.Anio=@Anio
+
+
+if @MesCierre=1 begin
+
+update catalogo_de_cuentas 
+set Movdeudor=
+     (select isnull(sum(dbo.detalle_de_diario.Monto),0) from   dbo.Detalle_de_Diario INNER JOIN
+                      dbo.Comprobante_de_Diario ON dbo.Detalle_de_Diario.Tipo = dbo.Comprobante_de_Diario.Tipo AND 
+                      dbo.Detalle_de_Diario.Comprobante = dbo.Comprobante_de_Diario.Comprobante AND 
+                      dbo.Detalle_de_Diario.Mes = dbo.Comprobante_de_Diario.Mes AND dbo.Detalle_de_Diario.Anio = dbo.Comprobante_de_Diario.Anio
+		     where dbo.detalle_de_diario.movimiento=1 and dbo.comprobante_de_diario.Anulado=0 and detalle_de_diario.mes=@Mes
+			and dbo.detalle_de_diario.anio=@Anio and detalle_de_diario.cuenta=catalogo_de_cuentas.cuenta),
+USMovdeudor=
+     (select isnull(sum(dbo.detalle_de_diario.Montous),0) from   dbo.Detalle_de_Diario INNER JOIN
+                      dbo.Comprobante_de_Diario ON dbo.Detalle_de_Diario.Tipo = dbo.Comprobante_de_Diario.Tipo AND 
+                      dbo.Detalle_de_Diario.Comprobante = dbo.Comprobante_de_Diario.Comprobante AND 
+                      dbo.Detalle_de_Diario.Mes = dbo.Comprobante_de_Diario.Mes AND dbo.Detalle_de_Diario.Anio = dbo.Comprobante_de_Diario.Anio
+		     where dbo.detalle_de_diario.movimiento=1 and dbo.comprobante_de_diario.Anulado=0 and detalle_de_diario.mes=@Mes
+			and dbo.detalle_de_diario.anio=@Anio and detalle_de_diario.cuenta=catalogo_de_cuentas.cuenta),
+MovAcreedor=
+     (select isnull(sum(dbo.detalle_de_diario.Monto),0) from   dbo.Detalle_de_Diario INNER JOIN
+                      dbo.Comprobante_de_Diario ON dbo.Detalle_de_Diario.Tipo = dbo.Comprobante_de_Diario.Tipo AND 
+                      dbo.Detalle_de_Diario.Comprobante = dbo.Comprobante_de_Diario.Comprobante AND 
+                      dbo.Detalle_de_Diario.Mes = dbo.Comprobante_de_Diario.Mes AND dbo.Detalle_de_Diario.Anio = dbo.Comprobante_de_Diario.Anio
+		     where dbo.detalle_de_diario.movimiento=2 and dbo.comprobante_de_diario.Anulado=0 and detalle_de_diario.mes=@Mes
+			and dbo.detalle_de_diario.anio=@Anio and detalle_de_diario.cuenta=catalogo_de_cuentas.cuenta),
+USMovAcreedor=
+     (select isnull(sum(dbo.detalle_de_diario.MontoUS),0) from   dbo.Detalle_de_Diario INNER JOIN
+                      dbo.Comprobante_de_Diario ON dbo.Detalle_de_Diario.Tipo = dbo.Comprobante_de_Diario.Tipo AND 
+                      dbo.Detalle_de_Diario.Comprobante = dbo.Comprobante_de_Diario.Comprobante AND 
+                      dbo.Detalle_de_Diario.Mes = dbo.Comprobante_de_Diario.Mes AND dbo.Detalle_de_Diario.Anio = dbo.Comprobante_de_Diario.Anio
+		     where dbo.detalle_de_diario.movimiento=2 and dbo.comprobante_de_diario.Anulado=0 and detalle_de_diario.mes=@Mes
+			and dbo.detalle_de_diario.anio=@Anio and detalle_de_diario.cuenta=catalogo_de_cuentas.cuenta)  
+from dbo.Detalle_de_Diario INNER JOIN
+                      dbo.Catalogo_de_Cuentas ON dbo.Detalle_de_Diario.Cuenta = dbo.Catalogo_de_Cuentas.Cuenta INNER JOIN
+                      dbo.Comprobante_de_Diario ON dbo.Detalle_de_Diario.Tipo = dbo.Comprobante_de_Diario.Tipo AND 
+                      dbo.Detalle_de_Diario.Comprobante = dbo.Comprobante_de_Diario.Comprobante AND 
+                      dbo.Detalle_de_Diario.Mes = dbo.Comprobante_de_Diario.Mes AND dbo.Detalle_de_Diario.Anio = dbo.Comprobante_de_Diario.Anio
+		     where dbo.comprobante_de_diario.Anulado=0 and detalle_de_diario.mes=@Mes
+		and detalle_de_diario.anio=@Anio
+
+end
+else begin
+
+update catalogo_de_cuentas 
+set Movdeudor=
+     (select isnull(sum(dbo.detalle_de_diario.Monto),0) from   dbo.Detalle_de_Diario INNER JOIN
+                      dbo.Comprobante_de_Diario ON dbo.Detalle_de_Diario.Tipo = dbo.Comprobante_de_Diario.Tipo AND 
+                      dbo.Detalle_de_Diario.Comprobante = dbo.Comprobante_de_Diario.Comprobante AND 
+                      dbo.Detalle_de_Diario.Mes = dbo.Comprobante_de_Diario.Mes AND dbo.Detalle_de_Diario.Anio = dbo.Comprobante_de_Diario.Anio
+		     where dbo.detalle_de_diario.movimiento=1 and dbo.comprobante_de_diario.Anulado=0 and Comprobante_de_diario.Cierre=0 and detalle_de_diario.mes=@Mes
+			and dbo.detalle_de_diario.anio=@Anio and detalle_de_diario.cuenta=catalogo_de_cuentas.cuenta),
+USMovdeudor=
+     (select isnull(sum(dbo.detalle_de_diario.Montous),0) from   dbo.Detalle_de_Diario INNER JOIN
+                      dbo.Comprobante_de_Diario ON dbo.Detalle_de_Diario.Tipo = dbo.Comprobante_de_Diario.Tipo AND 
+                      dbo.Detalle_de_Diario.Comprobante = dbo.Comprobante_de_Diario.Comprobante AND 
+                      dbo.Detalle_de_Diario.Mes = dbo.Comprobante_de_Diario.Mes AND dbo.Detalle_de_Diario.Anio = dbo.Comprobante_de_Diario.Anio
+		     where dbo.detalle_de_diario.movimiento=1 and dbo.comprobante_de_diario.Anulado=0 and Comprobante_de_diario.Cierre=0 and detalle_de_diario.mes=@Mes
+			and dbo.detalle_de_diario.anio=@Anio and detalle_de_diario.cuenta=catalogo_de_cuentas.cuenta),
+MovAcreedor=
+     (select isnull(sum(dbo.detalle_de_diario.Monto),0) from   dbo.Detalle_de_Diario INNER JOIN
+                      dbo.Comprobante_de_Diario ON dbo.Detalle_de_Diario.Tipo = dbo.Comprobante_de_Diario.Tipo AND 
+                      dbo.Detalle_de_Diario.Comprobante = dbo.Comprobante_de_Diario.Comprobante AND 
+                      dbo.Detalle_de_Diario.Mes = dbo.Comprobante_de_Diario.Mes AND dbo.Detalle_de_Diario.Anio = dbo.Comprobante_de_Diario.Anio
+		     where dbo.detalle_de_diario.movimiento=2 and dbo.comprobante_de_diario.Anulado=0 and Comprobante_de_diario.Cierre=0 and detalle_de_diario.mes=@Mes
+			and dbo.detalle_de_diario.anio=@Anio and detalle_de_diario.cuenta=catalogo_de_cuentas.cuenta),
+USMovAcreedor=
+     (select isnull(sum(dbo.detalle_de_diario.MontoUS),0) from   dbo.Detalle_de_Diario INNER JOIN
+                      dbo.Comprobante_de_Diario ON dbo.Detalle_de_Diario.Tipo = dbo.Comprobante_de_Diario.Tipo AND 
+                      dbo.Detalle_de_Diario.Comprobante = dbo.Comprobante_de_Diario.Comprobante AND 
+                      dbo.Detalle_de_Diario.Mes = dbo.Comprobante_de_Diario.Mes AND dbo.Detalle_de_Diario.Anio = dbo.Comprobante_de_Diario.Anio
+		     where dbo.detalle_de_diario.movimiento=2 and dbo.comprobante_de_diario.Anulado=0 and Comprobante_de_diario.Cierre=0 and detalle_de_diario.mes=@Mes
+			and dbo.detalle_de_diario.anio=@Anio and detalle_de_diario.cuenta=catalogo_de_cuentas.cuenta)  
+from dbo.Detalle_de_Diario INNER JOIN
+                      dbo.Catalogo_de_Cuentas ON dbo.Detalle_de_Diario.Cuenta = dbo.Catalogo_de_Cuentas.Cuenta INNER JOIN
+                      dbo.Comprobante_de_Diario ON dbo.Detalle_de_Diario.Tipo = dbo.Comprobante_de_Diario.Tipo AND 
+                      dbo.Detalle_de_Diario.Comprobante = dbo.Comprobante_de_Diario.Comprobante AND 
+                      dbo.Detalle_de_Diario.Mes = dbo.Comprobante_de_Diario.Mes AND dbo.Detalle_de_Diario.Anio = dbo.Comprobante_de_Diario.Anio
+		     where dbo.comprobante_de_diario.Anulado=0 and Comprobante_de_diario.Cierre=0 and detalle_de_diario.mes=@Mes
+		and detalle_de_diario.anio=@Anio
+
+end
+
+set @csql = 'update catalogo_de_cuentas set Ejec' + convert(varchar, @Mes) + '=case when tipocuenta=1 then MovDeudor-MovAcreedor else MovAcreedor-MovDeudor end,
+USEjec' + convert(varchar, @Mes) + '=case when tipocuenta=1 then USMovDeudor-USMovAcreedor else USMovAcreedor-USMovDeudor end'
+
+EXEC(@csql)
+ 
+if @mes-1 = 0
+begin
+   set @mesAnterior = 12
+end
+else begin
+  set @mesAnterior = @mes-1
+end
+ 
+if (@mes=@mesInicial)
+    set @csql = 'update catalogo_de_cuentas set Saldo_Anterior=catalogo_de_cuentas.Saldo_Inicial_Periodo, USSaldo_Anterior=catalogo_de_cuentas.USSaldo_Inicial_Periodo'
+else begin
+    set @csql = 'update catalogo_de_cuentas set Saldo_Anterior=catalogo_de_cuentas.Mes' + convert(varchar, @mesAnterior) + ', USSaldo_Anterior=catalogo_de_cuentas.USMes' + convert(varchar, @mesAnterior)
+end
+exec(@csql)
+ 
+if (@mes=@mesInicial)
+    set @csql = 'update catalogo_de_cuentas set Monto=(case tipocuenta when 1 then (catalogo_de_cuentas.Saldo_Inicial_Periodo+MovDeudor-MovAcreedor) else (catalogo_de_cuentas.Saldo_Inicial_Periodo-MovDeudor+MovAcreedor) end), ' + 
+                       ' USMonto=(case tipocuenta when 1 then (catalogo_de_cuentas.USSaldo_Inicial_Periodo+USMovDeudor-USMovAcreedor) else (catalogo_de_cuentas.USSaldo_Inicial_Periodo-USMovDeudor+USMovAcreedor) end)'
+else begin
+    set @csql = 'update catalogo_de_cuentas set Monto=(case tipocuenta when 1 then (catalogo_de_cuentas.Mes' + convert(varchar, @mesAnterior) + '+MovDeudor-MovAcreedor) else (catalogo_de_cuentas.Mes' + convert(varchar, @mesAnterior) + '-MovDeudor+MovAcreedor) end),' +
+	          ' USMonto=(case tipocuenta when 1 then (catalogo_de_cuentas.USMes' + convert(varchar, @mesAnterior) + '+USMovDeudor-USMovAcreedor) else (catalogo_de_cuentas.USMes' + convert(varchar, @mesAnterior) + '-USMovDeudor+USMovAcreedor) end) '
+end
+exec(@csql)
+ 
+declare cat_cursor cursor forward_only read_only -- nuevas lineas para aumentar el rendimiento [forward_only/read_only]
+for
+ select cuenta, cuenta_padre, 
+              monto, mes1, mes2, mes3, mes4, mes5, mes6, mes7, mes8, mes9, mes10, mes11, mes12, movDeudor, movAcreedor,  
+              nivel, saldo_anterior,
+	usmonto, usmes1, usmes2, usmes3, usmes4, usmes5, usmes6, usmes7, usmes8, usmes9, usmes10, usmes11, usmes12, usmovDeudor, usmovAcreedor, usSaldo_Anterior,
+	Pmes1, Pmes2, Pmes3, Pmes4, Pmes5, Pmes6, Pmes7, Pmes8, Pmes9, Pmes10, Pmes11, Pmes12,
+	USPmes1, USPmes2, USPmes3, USPmes4, USPmes5, USPmes6, USPmes7, USPmes8, USPmes9, USPmes10, USPmes11, USPmes12,
+	Ejec1, Ejec2, Ejec3, Ejec4, Ejec5, Ejec6, Ejec7, Ejec8, Ejec9, Ejec10, Ejec11, Ejec12,
+	USEjec1, USEjec2, USEjec3, USEjec4, USEjec5, USEjec6, USEjec7, USEjec8, USEjec9, USEjec10, USEjec11, USEjec12,
+	Saldo_Inicial_Periodo, USSaldo_Inicial_Periodo
+ from catalogo_de_cuentas order by nivel desc
+ 
+open cat_cursor
+ 
+fetch next from cat_cursor
+into @cuenta, @cuentapadre, @monto, @mes1, @mes2, @mes3, @mes4, @mes5, @mes6, @mes7, @mes8, @mes9, @mes10, @mes11, @mes12, @movDeudor, @movAcreedor, @nivel, @saldo_anterior,
+@usmonto, @usmes1, @usmes2, @usmes3, @usmes4, @usmes5, @usmes6, @usmes7, @usmes8, @usmes9, @usmes10, @usmes11, @usmes12, @usmovDeudor, @usmovAcreedor, @usSaldo_Anterior,
+@Pmes1, @Pmes2, @Pmes3, @Pmes4, @Pmes5, @Pmes6, @Pmes7, @Pmes8, @Pmes9, @Pmes10, @Pmes11, @Pmes12,
+@USPmes1, @USPmes2, @USPmes3, @USPmes4, @USPmes5, @USPmes6, @USPmes7, @USPmes8, @USPmes9, @USPmes10, @USPmes11, @USPmes12,
+@Ejec1, @Ejec2, @Ejec3, @Ejec4, @Ejec5, @Ejec6, @Ejec7, @Ejec8, @Ejec9, @Ejec10, @Ejec11, @Ejec12,
+@USEjec1, @USEjec2, @USEjec3, @USEjec4, @USEjec5, @USEjec6, @USEjec7, @USEjec8, @USEjec9, @USEjec10, @USEjec11, @USEjec12,
+@Saldo_Inicial_Periodo, @USSaldo_Inicial_Periodo
+ 
+/* Noborrar
+' Declare @SQL
+' set @SQL='update factura set ' + @campo + '=5''
+' exec (@SQL) */
+ 
+while @@fetch_status = 0
+    begin
+ update catalogo_de_cuentas set 
+monto=monto + @monto,
+ mes1=mes1+@mes1,
+ mes2=mes2+@mes2,
+ mes3=mes3+@mes3,
+ mes4=mes4+@mes4,
+ mes5=mes5+@mes5,
+ mes6=mes6+@mes6,
+ mes7=mes7+@mes7,
+ mes8=mes8+@mes8,
+ mes9=mes9+@mes9,
+ mes10=mes10+@mes10, mes11=mes11+@mes11,
+ mes12=mes12+@mes12,
+saldo_anterior=saldo_anterior+@saldo_anterior,
+ movdeudor=movdeudor+@movdeudor,
+ movacreedor=movacreedor+@movacreedor,
+ usmonto=usmonto + @usmonto,
+ usmes1=usmes1+@usmes1,
+ usmes2=usmes2+@usmes2,
+ usmes3=usmes3+@usmes3,
+ usmes4=usmes4+@usmes4,
+ usmes5=usmes5+@usmes5,
+ usmes6=usmes6+@usmes6,
+ usmes7=usmes7+@usmes7,
+ usmes8=usmes8+@usmes8,
+ usmes9=usmes9+@usmes9,
+ usmes10=usmes10+@usmes10, usmes11=usmes11+@usmes11,
+ usmes12=usmes12+@usmes12,
+ussaldo_anterior=ussaldo_anterior+@ussaldo_anterior,
+ usmovdeudor=usmovdeudor+@usmovdeudor,
+ usmovacreedor=usmovacreedor+@usmovacreedor,
+ Pmes1=Pmes1+@Pmes1,
+ Pmes2=Pmes2+@Pmes2,
+ Pmes3=Pmes3+@Pmes3,
+ Pmes4=Pmes4+@Pmes4,
+ Pmes5=Pmes5+@Pmes5,
+ Pmes6=Pmes6+@Pmes6,
+ Pmes7=Pmes7+@Pmes7,
+ Pmes8=Pmes8+@Pmes8,
+ Pmes9=Pmes9+@Pmes9,
+ Pmes10=Pmes10+@Pmes10, 
+ Pmes11=Pmes11+@Pmes11,
+ Pmes12=Pmes12+@Pmes12,
+ usPmes1=usPmes1+@usPmes1,
+ usPmes2=usPmes2+@usPmes2,
+ usPmes3=usPmes3+@usPmes3,
+ usPmes4=usPmes4+@usPmes4,
+ usPmes5=usPmes5+@usPmes5,
+ usPmes6=usPmes6+@usPmes6,
+ usPmes7=usPmes7+@usPmes7,
+ usPmes8=usPmes8+@usPmes8,
+ usPmes9=usPmes9+@usPmes9,
+ usPmes10=usPmes10+@usPmes10, 
+ usPmes11=usPmes11+@usPmes11,
+ usPmes12=usPmes12+@usPmes12,
+ Ejec1=Ejec1+@Ejec1,
+ Ejec2=Ejec2+@Ejec2,
+ Ejec3=Ejec3+@Ejec3,
+ Ejec4=Ejec4+@Ejec4,
+ Ejec5=Ejec5+@Ejec5,
+ Ejec6=Ejec6+@Ejec6,
+ Ejec7=Ejec7+@Ejec7,
+ Ejec8=Ejec8+@Ejec8,
+ Ejec9=Ejec9+@Ejec9,
+ Ejec10=Ejec10+@Ejec10,
+ Ejec11=Ejec11+@Ejec11,
+ Ejec12=Ejec12+@Ejec12,
+ USEjec1=USEjec1+@USEjec1,
+ USEjec2=USEjec2+@USEjec2,
+ USEjec3=USEjec3+@USEjec3,
+ USEjec4=USEjec4+@USEjec4,
+ USEjec5=USEjec5+@USEjec5,
+ USEjec6=USEjec6+@USEjec6,
+ USEjec7=USEjec7+@USEjec7,
+ USEjec8=USEjec8+@USEjec8,
+ USEjec9=USEjec9+@USEjec9,
+ USEjec10=USEjec10+@USEjec10,
+ USEjec11=USEjec11+@USEjec11,
+ USEjec12=USEjec12+@USEjec12,
+ Saldo_Inicial_Periodo=Saldo_Inicial_Periodo+@Saldo_Inicial_Periodo,
+ USSaldo_Inicial_Periodo=USSaldo_Inicial_Periodo+@USSaldo_Inicial_Periodo
+ where cuenta=@cuentapadre
+fetch next from cat_cursor
+into @cuenta, @cuentapadre, @monto, @mes1, @mes2, @mes3, @mes4, @mes5, @mes6, @mes7, @mes8, @mes9, @mes10, @mes11, @mes12, @movDeudor, @movAcreedor, @nivel, @saldo_anterior,
+@usmonto, @usmes1, @usmes2, @usmes3, @usmes4, @usmes5, @usmes6, @usmes7, @usmes8, @usmes9, @usmes10, @usmes11, @usmes12, @usmovDeudor, @usmovAcreedor, @usSaldo_Anterior,
+@Pmes1, @Pmes2, @Pmes3, @Pmes4, @Pmes5, @Pmes6, @Pmes7, @Pmes8, @Pmes9, @Pmes10, @Pmes11, @Pmes12,
+@USPmes1, @USPmes2, @USPmes3, @USPmes4, @USPmes5, @USPmes6, @USPmes7, @USPmes8, @USPmes9, @USPmes10, @USPmes11, @USPmes12,
+@Ejec1, @Ejec2, @Ejec3, @Ejec4, @Ejec5, @Ejec6, @Ejec7, @Ejec8, @Ejec9, @Ejec10, @Ejec11, @Ejec12,
+@USEjec1, @USEjec2, @USEjec3, @USEjec4, @USEjec5, @USEjec6, @USEjec7, @USEjec8, @USEjec9, @USEjec10, @USEjec11, @USEjec12,
+@Saldo_Inicial_Periodo, @USSaldo_Inicial_Periodo
+ 
+    end
+ 
+set @csql = 'Update catalogo_de_cuentas set Mes' + convert(varchar, @Mes) + ' =Monto,  USMes' + convert(varchar, @Mes) + ' =USMonto '
+exec(@csql)
+ 
+close cat_cursor
+deallocate cat_cursor
+update comprobante_de_diario set Generado=1 where Mes=@mes and Anio=@anio and  anulado=0
+/* UNA VEZ GENERADO LOS ASIENTOS, GUARDA LOS DATOS MENSULES EN CATALOGO_HISTORICO */
+
+if @MesCierre=0  begin
+   exec sp_Guardar_Catalogo_Historico @Mes, @Anio
+end
+
+update bancos set Ingresos_Minutas= (Select isnull(sum(Monto),0) from ingresos_y_egresos where month(fecha)=@mes and  year(fecha)=@Anio and tipo=1  and Anulado=0 AND Bancos.codigo=Ingresos_y_Egresos.Banco)
+update bancos set Ingresos_NC= (Select isnull(sum(Monto),0) from ingresos_y_egresos where month(fecha)=@mes and  year(fecha)=@Anio and Tipo=2  and Anulado=0 AND Bancos.codigo=Ingresos_y_Egresos.Banco)
+update bancos set Egresos_Cheques= (Select isnull(sum(Monto),0) from ingresos_y_egresos where month(fecha)=@mes and  year(fecha)=@Anio and Tipo=3  and Anulado=0 AND Bancos.codigo=Ingresos_y_Egresos.Banco)
+update bancos set Egresos_ND= (Select isnull(sum(Monto),0) from ingresos_y_egresos where month(fecha)=@mes and  year(fecha)=@Anio and Tipo=4  and Anulado=0 AND Bancos.codigo=Ingresos_y_Egresos.Banco)
+update bancos set Cheques_Anulados= (Select isnull(sum(Monto),0) from ingresos_y_egresos where month(fecha)=@mes and  year(fecha)=@Anio and Tipo=3 and Anulado=1 AND Bancos.codigo=Ingresos_y_Egresos.Banco)
+update ingresos_y_egresos set emitido=1 where year(fecha)=@Anio and month(fecha)=@Mes
+GO
+

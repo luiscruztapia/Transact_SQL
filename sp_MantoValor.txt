@@ -1,0 +1,18 @@
+USE [xxDBxx]
+GO
+
+/****** Object:  StoredProcedure [dbo].[sp_MantoValor]    ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[sp_MantoValor] (@Mes int, @Anio int, @tc float) AS
+SELECT [Catalogo_de_Cuentas].Movimiento CatMovimiento, [Catalogo_de_Cuentas].Moneda, [Detalle_de_Diario].Comprobante, [Detalle_de_Diario].Mes, [Detalle_de_Diario].Anio, [Detalle_de_Diario].Cuenta, [Detalle_de_Diario].Movimiento DetMovimiento, [Detalle_de_Diario].Monto, [Comprobante_de_Diario].Fecha, [Cambio_del_Dolar].[Tipo_de_Cambio_Oficial], (([Detalle_de_Diario].[Monto]/[tipo_de_cambio_oficial])*@tc)-[Detalle_de_Diario].[Monto] AS DifCamb, [Catalogo_de_Cuentas].CuentaMantenimiento
+FROM ([Comprobante_de_Diario] INNER JOIN [Cambio_del_Dolar] ON [Comprobante_de_Diario].Fecha = [Cambio_del_Dolar].Fecha) INNER JOIN ([Catalogo_de_Cuentas] INNER JOIN [Detalle_de_Diario] ON ([Catalogo_de_Cuentas].Cuenta = [Detalle_de_Diario].Cuenta)) ON ([Comprobante_de_Diario].Anio = [Detalle_de_Diario].Anio) AND ([Comprobante_de_Diario].Mes = [Detalle_de_Diario].Mes) AND ([Comprobante_de_Diario].Comprobante = [Detalle_de_Diario].Comprobante) AND ([Comprobante_de_Diario].Tipo = [Detalle_de_Diario].Tipo)
+WHERE ((([Catalogo_de_Cuentas].Movimiento)=1) AND (([Catalogo_de_Cuentas].Moneda) Between 2 And 3) AND (([Detalle_de_Diario].Mes)=@Mes) AND (([Detalle_de_Diario].Anio)=@Anio));
+
+
+GO
+

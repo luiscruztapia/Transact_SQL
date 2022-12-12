@@ -1,0 +1,39 @@
+USE [xxDBxx]
+GO
+
+/****** Object:  StoredProcedure [dbo].[sp_ldiarioDetalle]     ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[sp_ldiarioDetalle](@cTipo varchar(2), @cMes varchar(2), @cAnio varchar(5))
+as 
+declare @nMes as int
+declare @nAnio as int
+declare @nTipo as int
+
+set @nTipo = convert(int, @cTipo)
+set @nMes = convert(int, @cMes)
+set @nAnio = convert(int, @cAnio)
+
+SELECT  Comprobante_de_Diario.Tipo, Comprobante_de_Diario.Comprobante, 
+Comprobante_de_Diario.Mes, Comprobante_de_Diario.Anio, Comprobante_de_Diario.Fecha, 
+Comprobante_de_Diario.Concepto ConceptoGeneral, Comprobante_de_Diario.Anulado,  Detalle_de_Diario.Comprobante, 
+Detalle_de_Diario.Movimiento, Detalle_de_Diario.Monto, Detalle_de_Diario.MontoUS, Detalle_de_Diario.Concepto,   Detalle_de_Diario.Cuenta,
+Detalle_de_Documentos.Numero_de_Documento,  Catalogo_de_Cuentas.Descripcion  
+From dbo.Comprobante_de_Diario Comprobante_de_Diario LEFT OUTER JOIN  dbo.Detalle_de_Diario Detalle_de_Diario 
+ON Comprobante_de_Diario.Tipo = Detalle_de_Diario.Tipo AND  
+Comprobante_de_Diario.Comprobante = Detalle_de_Diario.Comprobante AND 
+Comprobante_de_Diario.Mes = Detalle_de_Diario.Mes AND  
+Comprobante_de_Diario.Anio = Detalle_de_Diario.Anio LEFT OUTER JOIN  dbo.Detalle_de_Documentos Detalle_de_Documentos ON 
+Comprobante_de_Diario.Tipo = Detalle_de_Documentos.TipoComprob AND  
+Comprobante_de_Diario.Comprobante = Detalle_de_Documentos.Comprobante AND 
+Comprobante_de_Diario.Mes = Detalle_de_Documentos.Mes AND  
+Comprobante_de_Diario.Anio = Detalle_de_Documentos.Anio LEFT OUTER JOIN  dbo.Catalogo_de_Cuentas Catalogo_de_Cuentas ON 
+Detalle_de_Diario.Cuenta = Catalogo_de_Cuentas.Cuenta where Comprobante_de_Diario.Mes=@nMes and Comprobante_de_Diario.Anio=@nAnio and 
+Comprobante_de_diario.Tipo=@ntipo
+Order By  Comprobante_de_Diario.Anio ASC, Comprobante_de_Diario.Mes ASC, Comprobante_de_Diario.Tipo ASC, Comprobante_de_Diario.Comprobante ASC, Detalle_de_Diario.Movimiento Asc
+GO
+

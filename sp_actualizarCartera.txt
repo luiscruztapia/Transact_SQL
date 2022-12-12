@@ -1,0 +1,39 @@
+USE [xxDBxx]
+GO
+/****** Object:  StoredProcedure [dbo].[sp_actualizarCartera]    ******/
+SET ANSI_NULLS OFF
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER PROCEDURE [dbo].[sp_actualizarCartera]  AS
+update facturas set abonos=0 where tipo=2
+update facturas set abonos=total_neto, saldo=0 where tipo=1
+
+update facturas set abonos= (select isnull(sum(abono+descuento+retencion),0) from
+detalle_de_cxc 
+where facturas.numero_de_documento=detalle_de_cxc.codigo_factura and
+facturas.tipodoc=detalle_de_cxc.tipodoc and
+facturas.tipo=detalle_de_cxc.tipo and
+facturas.serie=detalle_de_cxc.serie and facturas.codigosucursal=detalle_de_cxc.codigosucursal) where facturas.tipo=2
+
+update facturas set saldo=total_neto-abonos
+
+-- Cuentas por Pagar
+UPDATE compras set abonos = 0, saldo=compras.total_neto where tipo=2
+update compras set abonos=total_neto, saldo=0 where tipo=1
+
+update Compras set compras.abonos= ( select isnull(sum(abono+descuento+retencion),0) from
+detalle_cxp
+where compras.numero_de_documento=detalle_cxp.codigo_factura and
+Compras.tipo=detalle_cxp.tipo and
+Compras.codigo_proveedor=detalle_cxp.codigo_proveedor and compras.codigosucursal=detalle_cxp.codigosucursal) where compras.tipo=2
+
+UPDATE Compras set saldo=total_neto-Abonos
+
+-- NOTAS DE DEBITO CXP            
+UPDATE Notas_de_Debito_CXP set abonos = 0
+UPDATE Notas_de_Debito_CXP SET Abonos = (select isnull(sum([abono]+[retencion]+[descuento]),0) 
+FROM detalle_cxp_ND d2
+where Notas_de_Debito_CXP.codigo_proveedor=d2.codigo_proveedor and
+Notas_de_Debito_CXP.numero_de_documento=d2.codigo_nd and notas_de_debito_cxp.codigosucursal=d2.codigosucursal )
+update Notas_de_debito_cxp set saldo = total_neto-abonos

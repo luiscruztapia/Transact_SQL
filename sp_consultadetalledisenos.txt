@@ -1,0 +1,14 @@
+USE [xxDBxx]
+GO
+
+/****** Object:  StoredProcedure [dbo].[sp_consultadetalledisenos]     ******/
+SET ANSI_NULLS OFF
+GO
+
+SET QUOTED_IDENTIFIER OFF
+GO
+
+CREATE PROCEDURE [dbo].[sp_consultadetalledisenos](@codigosucursal int, @ndiseno int) AS
+select * from detalle_disenos where codigo_diseno=@ndiseno and visible=1 and codigosucursal=@codigosucursal order by xtop, xleft
+GO
+

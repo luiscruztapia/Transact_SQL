@@ -1,0 +1,25 @@
+USE [xxDBxx]
+GO
+
+/****** Object:  StoredProcedure [dbo].[sp_cuentasT]     ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[sp_cuentasT](@Mesc varchar(2), @Anoc varchar(4))  AS
+declare @mes int
+declare @Ano int
+set @Mes = convert(int, @Mesc)
+set @Ano = convert(int, @Anoc)
+SELECT Catalogo_de_Cuentas.Cuenta, 0 AS Comprobante, 0 AS Numero, 0 AS Tipo, 1 AS Movimiento, 0 AS Anio, 0 AS Mes, 0 AS Monto, 0 AS MontoUS, Catalogo_de_Cuentas.Saldo_Anterior, Catalogo_de_Cuentas.MovDeudor, Catalogo_de_Cuentas.MovAcreedor, Catalogo_de_Cuentas.Movimiento, Catalogo_de_Cuentas.Nivel, Catalogo_de_Cuentas.Descripcion, 1 AS Seccion, Catalogo_de_Cuentas.TipoCuenta, Catalogo_de_Cuentas.USSaldo_Anterior, Catalogo_de_Cuentas.USMovDeudor, Catalogo_de_Cuentas.USMovAcreedor, 0 AS TipoIngEg, 0 AS NumCK, 0 AS ANULADO
+FROM Catalogo_de_Cuentas
+WHERE (((Catalogo_de_Cuentas.Movimiento)=1) AND ((Catalogo_de_Cuentas.Nivel)>0))
+UNION
+SELECT Detalle_de_Diario.Cuenta, Detalle_de_Diario.Comprobante, Detalle_de_Diario.Numero, Detalle_de_Diario.Tipo, Detalle_de_Diario.Movimiento, Detalle_de_Diario.Anio, Detalle_de_Diario.Mes, Detalle_de_Diario.Monto, Detalle_de_Diario.MontoUS, Catalogo_de_Cuentas.Saldo_Anterior AS Saldo_Anterior, Catalogo_de_Cuentas.MovDeudor AS MovDeudor, Catalogo_de_Cuentas.MovAcreedor AS MovAcreedor, 1 AS Movimiento, 1 AS Nivel, Catalogo_de_Cuentas.Descripcion, 2 AS Seccion, Catalogo_de_Cuentas.TipoCuenta, Catalogo_de_Cuentas.USSaldo_Anterior AS SaldoAntUS,  Catalogo_de_Cuentas.USMovDeudor AS MovDeudorUS, Catalogo_de_Cuentas.USMovAcreedor AS MovAcreedorUS, Ingresos_y_Egresos.Tipo TipoIng, Ingresos_y_Egresos.Numero_de_documento, Comprobante_de_Diario.Anulado
+FROM Ingresos_y_Egresos RIGHT JOIN ((Comprobante_de_Diario RIGHT JOIN (Catalogo_de_Cuentas RIGHT JOIN Detalle_de_Diario ON (Catalogo_de_Cuentas.Cuenta = Detalle_de_Diario.Cuenta)) ON (Comprobante_de_Diario.Anio = Detalle_de_Diario.Anio) AND (Comprobante_de_Diario.Mes = Detalle_de_Diario.Mes) AND (Comprobante_de_Diario.Comprobante = Detalle_de_Diario.Comprobante) AND (Comprobante_de_Diario.Tipo = Detalle_de_Diario.Tipo)) LEFT JOIN detalle_de_documentos ON (Comprobante_de_Diario.Anio = detalle_de_documentos.Anio) AND (Comprobante_de_Diario.Mes = detalle_de_documentos.Mes) AND (Comprobante_de_Diario.Comprobante = detalle_de_documentos.Comprobante) AND (Comprobante_de_Diario.Tipo = detalle_de_documentos.TipoComprob)) ON (Ingresos_y_Egresos.Banco = detalle_de_documentos.Banco) AND (Ingresos_y_Egresos.Tipo = detalle_de_documentos.Tipo) AND (Ingresos_y_Egresos.Numero_de_documento = detalle_de_documentos.Numero_de_documento)
+WHERE (((Detalle_de_Diario.Anio)=@Ano) AND ((Detalle_de_Diario.Mes)=@Mes))
+ORDER BY Cuenta, Comprobante, Numero, Tipo, Movimiento, anio, Mes
+GO
+

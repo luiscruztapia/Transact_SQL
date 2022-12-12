@@ -1,0 +1,75 @@
+USE [xxDBxx]
+GO
+
+/****** Object:  StoredProcedure [dbo].[sp_insert_Detalle_Facturas_1]  ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+/****** Object:  Stored Procedure dbo.sp_insert_Detalle_Facturas_1    Script Date: 06/11/01 11:22:08 a.m. ******/
+CREATE PROCEDURE [dbo].[sp_insert_Detalle_Facturas_1]
+	(@CodigoSucursal int, 
+	@TipoDoc_1 	[smallint],
+	 @Tipo_2 	[smallint],
+	 @Codigo_Factura_3 	[nvarchar](10),
+	 @Serie		[nvarchar](1),
+	 @Bodega_4 	[int],
+	 @Codigo_Producto_5 	[nvarchar](15),
+	 @numero bigint, 
+	 @Descripcion varchar(255),
+	 @Cantidad_6 	[float],
+	 @CantidadBonif_7 	[float],
+	 @Costos_8 	[money],
+	 @Precio_Unitario_9 	[money],
+	 @Descuento_10 	[money],
+	 @Descargado_11 	[bit],
+	 @Precio_en_Dolares_12 	[money],
+               @NumeroSerie [nvarchar](100),
+              @NumeroSerie2 [nvarchar](100)
+)
+AS INSERT INTO [dbo].[Detalle_Facturas] 
+	 ( CodigoSucursal, 
+	[TipoDoc],
+	 [Tipo],
+	 [Codigo_Factura],
+	 [Serie],
+	 [Bodega],
+	 [Codigo_Producto],
+	 Numero, 
+	Descripcion,
+	 [Cantidad],
+	 [CantidadBonificada],
+	 [Costos],
+	 [Precio_Unitario],
+	 [Descuento],
+	 [Descargado],
+	 [Precio_en_Dolares],
+              [NumeroSerie],
+              [NumeroSerie2]
+              )
+ 
+VALUES 
+	( @codigosucursal, 
+	@TipoDoc_1,
+	 @Tipo_2,
+	 @Codigo_Factura_3,
+	 @Serie,
+	 @Bodega_4,
+	 @Codigo_Producto_5,
+	@Numero,
+	@Descripcion,	
+	 @Cantidad_6,
+	 @CantidadBonif_7,
+	 @Costos_8,
+	 @Precio_Unitario_9,
+	 @Descuento_10,
+	 @Descargado_11,
+	 @Precio_en_Dolares_12,
+               @NumeroSerie,
+               @NumeroSerie2)
+
+
+GO
+

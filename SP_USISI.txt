@@ -1,0 +1,79 @@
+USE [xxDBxx]
+GO
+
+/****** Object:  StoredProcedure [dbo].[SP_USISI]     ******/
+SET ANSI_NULLS OFF
+GO
+
+SET QUOTED_IDENTIFIER OFF
+GO
+
+CREATE PROCEDURE [dbo].[SP_USISI](@FechaINI AS VARCHAR(8),@FechaFIN AS VARCHAR(8),@MES AS VARCHAR(4),@ANO AS VARCHAR(4)) AS
+SELECT USI.*,ISNULL((USI.USI+USI.Compras+USI.Entrada+USI.DevolucionesClientes-USI.Venta-USI.Salida-USI.DevolucionesProveedores-USI.Transferencias),0) AS USIREAL
+FROM
+(SELECT     Inv.*, isnull(Bod.USI,0) AS USI
+FROM         (SELECT     dbo.Inventario.Codigo, ISNULL(Comp.Compras, 0) AS Compras, ISNULL(Fact.Factura, 0) AS Venta, ISNULL(Salida.Salida, 0) AS Salida, 
+                                              ISNULL(Trans.Transferencia, 0) AS Transferencias, ISNULL(Dev.Devolucion, 0) AS DevolucionesClientes, ISNULL(DEVP.DevPro, 0) 
+                                              AS DevolucionesProveedores, ISNULL(Ent.Entrada, 0) AS Entrada
+                       FROM          (SELECT     Detalle_Devoluciones_Proveedores.Codigo_Producto, SUM(ISNULL(Detalle_Devoluciones_Proveedores.Cantidad, 0)) 
+                                                                      AS DevPro
+                                               FROM          dbo.Devoluciones_Proveedores INNER JOIN
+                                                                      dbo.Detalle_Devoluciones_Proveedores ON 
+                                                                      dbo.Devoluciones_Proveedores.CodigoSucursal = dbo.Detalle_Devoluciones_Proveedores.CodigoSucursal AND 
+                                                                      dbo.Devoluciones_Proveedores.Numero_de_Documento = dbo.Detalle_Devoluciones_Proveedores.Codigo_Factura
+                                               WHERE      Devoluciones_Proveedores.Fecha BETWEEN @FechaINI AND @FechaFIN
+                                               GROUP BY Detalle_Devoluciones_Proveedores.Codigo_Producto) DEVP RIGHT OUTER JOIN
+                                                  (SELECT     Detalle_Devoluciones_Clientes.Codigo_Producto, SUM(ISNULL(Detalle_Devoluciones_Clientes.Cantidad, 0)) 
+                                                                           AS Devolucion
+                                                    FROM          dbo.Detalle_Devoluciones_Clientes INNER JOIN
+                                                                           Devoluciones_Clientes ON 
+                                                                           dbo.Devoluciones_Clientes.CodigoSucursal = dbo.Detalle_Devoluciones_Clientes.CodigoSucursal AND 
+                                                                           dbo.Devoluciones_Clientes.Numero_de_Documento = dbo.Detalle_Devoluciones_Clientes.Codigo_Factura
+                                                    WHERE      Devoluciones_Clientes.Fecha BETWEEN @FechaINI AND @FechaFIN
+                                                    GROUP BY Detalle_Devoluciones_Clientes.Codigo_Producto) Dev RIGHT OUTER JOIN
+                                                  (SELECT     Detalle_de_Entradas.Codigo_Producto, SUM(ISNULL(Detalle_de_Entradas.Cantidad, 0)) AS Entrada
+                                                    FROM          dbo.Detalle_de_Entradas INNER JOIN
+                                                                           dbo.Entrada_de_Productos ON dbo.Detalle_de_Entradas.CodigoSucursal = dbo.Entrada_de_Productos.CodigoSucursal AND 
+                                                                           dbo.Detalle_de_Entradas.Codigo_Factura = dbo.Entrada_de_Productos.Numero_de_Documento
+                                                    WHERE      Entrada_de_Productos.Fecha BETWEEN @FechaINI AND @FechaFIN
+                                                    GROUP BY Detalle_de_Entradas.Codigo_Producto) Ent RIGHT OUTER JOIN
+                                                                        dbo.Inventario ON Ent.Codigo_Producto COLLATE Modern_Spanish_CI_AS = dbo.Inventario.Codigo ON 
+                                              		      Dev.Codigo_Producto COLLATE Modern_Spanish_CI_AS = dbo.Inventario.Codigo LEFT OUTER JOIN
+                                                  (SELECT     detalle_de_Transferencias.Codigo_Producto, SUM(ISNULL(dbo.detalle_de_transferencias.Cantidad, 0)) AS Transferencia
+                                                    FROM          dbo.Detalle_de_Transferencias INNER JOIN
+                                                                           dbo.Transferencias ON dbo.Detalle_de_Transferencias.CodigoSucursal = dbo.Transferencias.CodigoSucursal AND 
+                                                                           dbo.Detalle_de_Transferencias.Codigo_Factura = dbo.Transferencias.Numero_de_Documento
+                                                    WHERE      dbo.transferencias.Fecha BETWEEN @FechaINI AND @FechaFIN
+                                                    GROUP BY dbo.Detalle_de_Transferencias.Codigo_Producto) Trans ON 
+                                              		     dbo.Inventario.Codigo = Trans.Codigo_Producto COLLATE Modern_Spanish_CI_AS LEFT OUTER JOIN
+                                                  (SELECT     Detalle_de_Salidas.Codigo_Producto, SUM(ISNULL(Detalle_de_Salidas.Cantidad, 0)) AS Salida
+                                                    FROM          dbo.Detalle_de_Salidas INNER JOIN
+                                                                           dbo.Salida_de_Productos ON dbo.Detalle_de_Salidas.CodigoSucursal = dbo.Salida_de_Productos.CodigoSucursal AND 
+                                                                           dbo.Detalle_de_Salidas.Codigo_Factura = dbo.Salida_de_Productos.Numero_de_Documento
+                                                    WHERE      Salida_de_Productos.Fecha BETWEEN @FechaINI AND @FechaFIN
+                                                    GROUP BY Detalle_de_Salidas.Codigo_Producto) Salida ON 
+                                              		     dbo.Inventario.Codigo = Salida.Codigo_Producto COLLATE Modern_Spanish_CI_AS LEFT OUTER JOIN
+                                                  (SELECT     Detalle_Facturas.Codigo_Producto, SUM(ISNULL(dbo.Detalle_Facturas.Cantidad, 0)) AS Factura
+                                                    FROM          dbo.Detalle_Facturas INNER JOIN
+                                                                           dbo.Facturas ON dbo.Detalle_Facturas.CodigoSucursal = dbo.Facturas.CodigoSucursal AND 
+                                                                           dbo.Detalle_Facturas.TipoDoc = dbo.Facturas.TipoDoc AND dbo.Detalle_Facturas.Tipo = dbo.Facturas.Tipo AND 
+                                                                           dbo.Detalle_Facturas.Codigo_Factura = dbo.Facturas.Numero_de_Documento AND 
+                                                                           dbo.Detalle_Facturas.Serie = dbo.Facturas.Serie
+                                                    WHERE      Facturas.Fecha BETWEEN @FechaINI AND @FechaFIN
+                                                    GROUP BY Detalle_Facturas.Codigo_Producto) Fact ON dbo.Inventario.Codigo = Fact.Codigo_Producto LEFT OUTER JOIN
+                                                  (SELECT     Detalle_Compras.Codigo_Producto, SUM(ISNULL(dbo.Detalle_Compras.Cantidad, 0)) AS Compras
+                                                    FROM          dbo.Compras INNER JOIN
+                                                                           dbo.Detalle_Compras ON dbo.Compras.CodigoSucursal = dbo.Detalle_Compras.CodigoSucursal AND 
+                                                                           dbo.Compras.Tipo = dbo.Detalle_Compras.Tipo AND 
+                                                                           dbo.Compras.Codigo_Proveedor = dbo.Detalle_Compras.Codigo_Proveedor AND 
+                                                                           dbo.Compras.Numero_de_Documento = dbo.Detalle_Compras.Codigo_Factura
+                                                    WHERE      Compras.Fecha BETWEEN @FechaINI AND @FechaFIN
+                                                    GROUP BY Detalle_Compras.Codigo_Producto) Comp ON 
+                                              		     dbo.Inventario.Codigo = Comp.Codigo_Producto COLLATE Modern_Spanish_CI_AS ON 
+                                              		     DEVP.Codigo_Producto COLLATE Modern_Spanish_CI_AS = dbo.Inventario.Codigo) Inv LEFT OUTER JOIN
+                          (SELECT     Codigo, SUM(ISNULL(dbo.SaldosIniciales.U_Saldo_Inicial, 0)) AS USI
+                            FROM          SaldosIniciales where SaldosIniciales.Mes=CAST(@MES AS INTEGER) and SaldosIniciales.Anio=CAST(@ANO AS INTEGER)
+                            GROUP BY SaldosIniciales.Codigo) Bod ON Inv.Codigo COLLATE Modern_Spanish_CI_AS = Bod.Codigo)USI
+
+GO
+

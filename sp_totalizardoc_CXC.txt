@@ -1,0 +1,29 @@
+USE [xxDBxx]
+GO
+
+/****** Object:  StoredProcedure [dbo].[sp_totalizardoc_CXC]    ******/
+SET ANSI_NULLS OFF
+GO
+
+SET QUOTED_IDENTIFIER OFF
+GO
+
+CREATE PROCEDURE [dbo].[sp_totalizardoc_CXC](@codigosucursal int, @tiporecibo tinyint, @codigo_recibo varchar(10), @SerieR varchar(1) ) AS
+update cuentas_por_cobrar set totalrecibo=isnull((select sum(abono) from detalle_de_cxc dc 
+			where cuentas_por_cobrar.codigosucursal=dc.codigosucursal and
+			cuentas_por_cobrar.tiporecibo=dc.tiporecibo and cuentas_por_cobrar.codigo_recibo=dc.codigo_recibo and
+			cuentas_por_cobrar.SerieR = dc.SerieR),0),
+		total_retencion=isnull((select sum(Retencion) from detalle_de_cxc dc 
+			where cuentas_por_cobrar.codigosucursal=dc.codigosucursal and
+			cuentas_por_cobrar.tiporecibo=dc.tiporecibo and cuentas_por_cobrar.codigo_recibo=dc.codigo_recibo and
+			cuentas_por_cobrar.SerieR = dc.SerieR),0),
+		total_descuento=isnull((select sum(Descuento) from detalle_de_cxc dc 
+			where cuentas_por_cobrar.codigosucursal=dc.codigosucursal and
+			cuentas_por_cobrar.tiporecibo=dc.tiporecibo and cuentas_por_cobrar.codigo_recibo=dc.codigo_recibo and
+			cuentas_por_cobrar.SerieR = dc.SerieR),0)
+	where cuentas_por_cobrar.CodigoSucursal=@codigosucursal and  cuentas_por_cobrar.tiporecibo=@tiporecibo and cuentas_por_cobrar.codigo_recibo=@codigo_recibo and cuentas_por_cobrar.SerieR=@SerieR
+
+
+
+GO
+

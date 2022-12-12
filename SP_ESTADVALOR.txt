@@ -1,0 +1,71 @@
+USE [xxDBxx]
+GO
+
+/****** Object:  StoredProcedure [dbo].[SP_ESTADVALOR]   ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[SP_ESTADVALOR](@fechaini as varchar(8), @fechafin as varchar(8))
+as
+
+DECLARE @RangoA1i as int, @RangoB1i as int, @RangoB1f as int, @RangoC1i as int, @RangoC1f as int
+
+select top 1 @RangoA1i  = [Rango_Inicial] from Record_Monto_Compras where Categoria='A1'
+select top 1 @RangoB1i = [Rango_Inicial] from Record_Monto_Compras where Categoria='B1'
+select top 1 @RangoB1f = [Rango_Final] from Record_Monto_Compras where Categoria='B1'
+select top 1 @RangoC1i = [Rango_Inicial] from Record_Monto_Compras where Categoria='C1'
+select top 1 @RangoC1f = [Rango_Final] from Record_Monto_Compras where Categoria='C1'
+
+--select top 1 @RangoAi =2001
+--select top 1 @RangoBi =1001
+--select top 1 @RangoBf =2000
+--select top 1 @RangoCi =1
+--select top 1 @RangoCf =1000
+
+select 'A1' Categ, isnull(sum(case when rc.totalvendido>= @RangoA1i then 1 else 0 end),0) total, 
+	isnull(sum(case when rc.totalvendido>=@RangoA1i and rc.codigotipo=0 then 1 else 0 end),0) total0,
+	isnull(sum(case when rc.totalvendido>=@RangoA1i and rc.codigotipo=1 then 1 else 0 end),0) total1,
+	isnull(sum(case when rc.totalvendido>=@RangoA1i then TOTALVENDIDO else 0 end),0) totalV
+from (
+SELECT  min(tiposclientes.codigotipo) codigotipo, facturas.codigo_cliente, count(*) as totalfacturas,
+        sum(total_en_ventas-total_en_descuentos) totalvendido
+ FROM         dbo.Facturas INNER JOIN
+                      dbo.Clientes ON dbo.Facturas.Codigo_Cliente = dbo.Clientes.Codigo_Cliente INNER JOIN
+                      dbo.TiposClientes ON dbo.Clientes.CodigoTipo = dbo.TiposClientes.CodigoTipo
+and facturas.anulada=0 and facturas.fecha between @fechaini and @fechafin and facturas.codigo_cliente <>'00000'
+group by facturas.codigo_cliente
+) rc
+UNION
+select 'B1', isnull(sum(case when rc.totalvendido between @RangoB1i and @RangoB1f   then 1 else 0 end),0) totalB, 
+	isnull(sum(case when  rc.totalvendido between @RangoB1i and @RangoB1f and rc.codigotipo=0 then 1 else 0 end),0) totalA0,
+	isnull(sum(case when  rc.totalvendido between @RangoB1i and @RangoB1f and rc.codigotipo=1 then 1 else 0 end),0) totalA1,
+	isnull(sum(case when  rc.totalvendido between @RangoB1i and @RangoB1f then TOTALVENDIDO else 0 end),0) totalV
+from (
+SELECT  min(tiposclientes.codigotipo) codigotipo, facturas.codigo_cliente, count(*) as totalfacturas,
+        sum(total_en_ventas-total_en_descuentos) totalvendido
+ FROM         dbo.Facturas INNER JOIN
+                      dbo.Clientes ON dbo.Facturas.Codigo_Cliente = dbo.Clientes.Codigo_Cliente INNER JOIN
+                      dbo.TiposClientes ON dbo.Clientes.CodigoTipo = dbo.TiposClientes.CodigoTipo
+and facturas.anulada=0 and facturas.fecha between @fechaini and @fechafin and facturas.codigo_cliente <>'00000'
+group by facturas.codigo_cliente
+) rc
+UNION
+select 'C1', isnull(sum(case when rc.totalvendido between @RangoC1i and @RangoC1f  then 1 else 0 end),0) totalB, 	
+	isnull(sum(case when rc.totalvendido between @RangoC1i and @RangoC1f and rc.codigotipo=0 then 1 else 0 end),0) totalA0,
+	isnull(sum(case when rc.totalvendido between @RangoC1i and @RangoC1f and rc.codigotipo=1 then 1 else 0 end),0) totalA1,
+	isnull(sum(case when rc.totalvendido between @RangoC1i and @RangoC1f then TOTALVENDIDO else 0 end),0) totalV
+from (
+SELECT  min(tiposclientes.codigotipo) codigotipo, facturas.codigo_cliente, count(*) as totalfacturas,
+        sum(total_en_ventas-total_en_descuentos) totalvendido
+ FROM         dbo.Facturas INNER JOIN
+                      dbo.Clientes ON dbo.Facturas.Codigo_Cliente = dbo.Clientes.Codigo_Cliente INNER JOIN
+                      dbo.TiposClientes ON dbo.Clientes.CodigoTipo = dbo.TiposClientes.CodigoTipo
+and facturas.anulada=0 and facturas.fecha between @fechaini and @fechafin and facturas.codigo_cliente <>'00000'
+group by facturas.codigo_cliente
+) rc
+
+GO
+

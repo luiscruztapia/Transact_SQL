@@ -1,0 +1,28 @@
+USE [xxDBxx]
+GO
+
+/****** Object:  StoredProcedure [dbo].[sp_ActualizarSaldoND_CXP]     ******/
+SET ANSI_NULLS OFF
+GO
+
+SET QUOTED_IDENTIFIER OFF
+GO
+
+CREATE PROCEDURE [dbo].[sp_ActualizarSaldoND_CXP]  (@CodigoSucursal int, @CodigoProv varchar(5), @Documento as varchar(10)) as
+
+-- NOTAS DE DEBITO CXP            
+UPDATE Notas_de_Debito_CXP set abonos = 0
+
+
+UPDATE Notas_de_Debito_CXP SET Abonos = (select isnull(sum([abono]+[retencion]+[descuento]),0) 
+FROM detalle_cxp_ND d2
+where Notas_de_Debito_CXP.codigo_proveedor=d2.codigo_proveedor and
+Notas_de_Debito_CXP.numero_de_documento=d2.codigo_nd and notas_de_debito_cxp.codigosucursal=d2.codigosucursal )
+where Notas_de_Debito_CXP.CodigoSucursal=@CodigoSucursal and Notas_de_Debito_CXP.Codigo_Proveedor=@CodigoProv and
+Notas_de_Debito_CXP.Numero_de_Documento=@Documento
+
+update Notas_de_debito_cxp set saldo = total_neto-abonos where 
+Notas_de_Debito_CXP.CodigoSucursal=@CodigoSucursal and Notas_de_Debito_CXP.Codigo_Proveedor=@CodigoProv and
+Notas_de_Debito_CXP.Numero_de_Documento=@Documento
+GO
+

@@ -1,0 +1,42 @@
+ /****** Object:  LinkedServer [SERVERPJN]   ******/
+EXEC master.dbo.sp_addlinkedserver @server = N'SERVERPJN', @srvproduct=N'LACT', @provider=N'SQLNCLI', @datasrc=N'LACT'
+ /* For security reasons the linked server remote logins password is changed with ######## */
+EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname=N'SERVERPJN',@useself=N'False',@locallogin=N'ajtorres',@rmtuser=N'uspjn',@rmtpassword='########'
+
+GO
+
+EXEC master.dbo.sp_serveroption @server=N'SERVERPJN', @optname=N'collation compatible', @optvalue=N'false'
+GO
+
+EXEC master.dbo.sp_serveroption @server=N'SERVERPJN', @optname=N'data access', @optvalue=N'true'
+GO
+
+EXEC master.dbo.sp_serveroption @server=N'SERVERPJN', @optname=N'dist', @optvalue=N'false'
+GO
+
+EXEC master.dbo.sp_serveroption @server=N'SERVERPJN', @optname=N'pub', @optvalue=N'false'
+GO
+
+EXEC master.dbo.sp_serveroption @server=N'SERVERPJN', @optname=N'rpc', @optvalue=N'false'
+GO
+
+EXEC master.dbo.sp_serveroption @server=N'SERVERPJN', @optname=N'rpc out', @optvalue=N'false'
+GO
+
+EXEC master.dbo.sp_serveroption @server=N'SERVERPJN', @optname=N'sub', @optvalue=N'false'
+GO
+
+EXEC master.dbo.sp_serveroption @server=N'SERVERPJN', @optname=N'connect timeout', @optvalue=N'0'
+GO
+
+EXEC master.dbo.sp_serveroption @server=N'SERVERPJN', @optname=N'collation name', @optvalue=null
+GO
+
+EXEC master.dbo.sp_serveroption @server=N'SERVERPJN', @optname=N'lazy schema validation', @optvalue=N'false'
+GO
+
+EXEC master.dbo.sp_serveroption @server=N'SERVERPJN', @optname=N'query timeout', @optvalue=N'0'
+GO
+
+EXEC master.dbo.sp_serveroption @server=N'SERVERPJN', @optname=N'use remote collation', @optvalue=N'true'
+GO

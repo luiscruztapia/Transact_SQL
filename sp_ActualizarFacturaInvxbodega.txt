@@ -1,0 +1,16 @@
+USE [xxDBxx]
+GO
+
+/****** Object:  StoredProcedure [dbo].[sp_ActualizarFacturaInvxbodega]   ******/
+SET ANSI_NULLS OFF
+GO
+
+SET QUOTED_IDENTIFIER OFF
+GO
+
+CREATE PROCEDURE [dbo].[sp_ActualizarFacturaInvxbodega](@codigosucursal int, @bodega int, @Codigo varchar(20), @UVENTASMES float, @SVENTASMES float, @SVVENTASMES float, @UBONIFICACIONESMES float, @SBONIFICACIONESMES float, @EXISTENCIA float, @Ultima_venta varchar(12)) AS
+update Inventario_por_bodegas set U_Ventas_Mes=@UVENTASMES, S_Ventas_Mes=@SVENTASMES, S_VVentas_Mes=@SVVENTASMES, 
+	U_Bonificaciones_Mes=@UBONIFICACIONESMES, S_Bonificaciones_Mes=@SBONIFICACIONESMES, EXISTENCIA=@EXISTENCIA, 
+	Ultima_Venta=@Ultima_Venta Where codigosucursal=@codigosucursal and Bodega=@Bodega and Codigo=@Codigo
+GO
+

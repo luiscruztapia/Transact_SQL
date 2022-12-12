@@ -1,0 +1,52 @@
+USE [xxDBxx]
+GO
+
+/****** Object:  StoredProcedure [dbo].[sp_comprobantePago]     ******/
+SET ANSI_NULLS OFF
+GO
+
+SET QUOTED_IDENTIFIER OFF
+GO
+
+CREATE PROCEDURE [dbo].[sp_comprobantePago] (@Comprob as varchar(5), @Mes as varchar(2), @Anio as varchar(5)) as
+declare @nComprob int;
+declare @nMes int;
+declare @nAnio int;
+set @ncomprob = convert(int, @comprob)
+set @nMes = convert(int, @Mes)
+set @nAnio = convert(int, @Anio)
+SELECT
+    Comprobante_de_Diario.Comprobante, Comprobante_de_Diario.Mes, Comprobante_de_Diario.Anio, Comprobante_de_Diario.Fecha, substring(Comprobante_de_Diario.Concepto, 1, 255) as Concepto, substring(Comprobante_de_Diario.Concepto, 256, 255) as Concepto2,substring(Comprobante_de_Diario.Concepto, 511, 190) as Concepto3,
+    Cambio_del_Dolar.Tipo_de_Cambio_Oficial, Tipos_de_Asientos.Titulo,
+    Detalle_de_Diario.Movimiento, Detalle_de_Diario.Monto,
+    Catalogo_de_Cuentas.Cuenta, Catalogo_de_Cuentas.Cuenta_Padre, Catalogo_de_Cuentas.Descripcion,
+    Catalogo_padre.Descripcion PadreDesc, Ingresos_y_Egresos.NombreBeneficiario,
+    Proveedores.Nombre
+FROM
+    Cambio_del_Dolar Cambio_del_Dolar RIGHT OUTER JOIN
+                      Detalle_de_Documentos Detalle_de_Documentos RIGHT OUTER JOIN
+                      Comprobante_de_Diario Comprobante_de_Diario INNER JOIN
+                      Tipos_de_Asientos Tipos_de_Asientos ON Comprobante_de_Diario.Tipo = Tipos_de_Asientos.Codigo_Tipo ON 
+                      Detalle_de_Documentos.TipoComprob = Comprobante_de_Diario.Tipo AND 
+                      Detalle_de_Documentos.Comprobante = Comprobante_de_Diario.Comprobante AND Detalle_de_Documentos.Mes = Comprobante_de_Diario.Mes AND 
+                      Detalle_de_Documentos.Anio = Comprobante_de_Diario.Anio LEFT OUTER JOIN
+                      Detalle_de_Diario Detalle_de_Diario RIGHT OUTER JOIN
+                      Catalogo_de_Cuentas Catalogo_de_Cuentas LEFT OUTER JOIN
+                      Catalogo_de_Cuentas Catalogo_padre ON Catalogo_de_Cuentas.Cuenta_Padre = Catalogo_padre.Cuenta ON 
+                      Detalle_de_Diario.Cuenta = Catalogo_de_Cuentas.Cuenta ON Comprobante_de_Diario.Tipo = Detalle_de_Diario.Tipo AND 
+                      Comprobante_de_Diario.Comprobante = Detalle_de_Diario.Comprobante AND Comprobante_de_Diario.Mes = Detalle_de_Diario.Mes AND 
+                      Comprobante_de_Diario.Anio = Detalle_de_Diario.Anio ON Cambio_del_Dolar.Fecha = Comprobante_de_Diario.Fecha LEFT OUTER JOIN
+                      Ingresos_y_Egresos Ingresos_y_Egresos LEFT OUTER JOIN
+                      Proveedores_conta Proveedores ON Ingresos_y_Egresos.Proveedor = Proveedores.Codigo_Proveedor ON 
+                      Detalle_de_Documentos.Numero_de_Documento = Ingresos_y_Egresos.Numero_de_Documento AND 
+                      Detalle_de_Documentos.Tipo = Ingresos_y_Egresos.Tipo AND Detalle_de_Documentos.Banco = Ingresos_y_Egresos.Banco 
+Where (Comprobante_de_Diario.Comprobante = @nComprob) AND (Comprobante_de_Diario.Tipo = 3) AND (Comprobante_de_Diario.Mes = @nMes) AND (Comprobante_de_Diario.Anio = @nAnio) 
+ORDER BY
+    Comprobante_de_Diario.Comprobante ASC,
+    Comprobante_de_Diario.Mes ASC,
+    Comprobante_de_Diario.Anio ASC,
+    Detalle_de_Diario.Movimiento ASC,
+    Catalogo_de_Cuentas.Cuenta_Padre ASC,
+    Catalogo_de_Cuentas.Cuenta ASC
+GO
+

@@ -1,0 +1,41 @@
+USE [xxDBxx]
+GO
+
+/****** Object:  StoredProcedure [dbo].[sp_FacturasTurno]    ******/
+SET ANSI_NULLS OFF
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[sp_FacturasTurno]  (@Turno as bigint, @Serie as varchar(2)) as 
+
+select 
+isnull(sum(case when (c_efectivo+c_tarjeta+c_tarjeta2+c_cheque)>=0 then total_en_ventas-total_en_descuentos else 0 end),0) as ventascont,
+isnull(sum(case when (c_efectivo+c_tarjeta+c_tarjeta2+c_cheque)>=0 then total_neto else 0 end),0) as NetoCont,
+isnull(sum(case when (c_efectivo+c_tarjeta+c_tarjeta2+c_cheque)>=0 then total_en_impuesto else 0 end),0) as Impuestocont,
+isnull(sum(case when (c_efectivo+c_tarjeta+c_tarjeta2+c_cheque)>=0 then total_retencion else 0 end),0) as RetCont,
+isnull(sum(case when (c_efectivo+c_tarjeta+c_tarjeta2+c_cheque)>=0 then total_en_descuentos else 0 end),0) as DescCont,
+isnull(sum(case when (c_efectivo+c_tarjeta+c_tarjeta2+c_cheque)>=0 then totalservicio else 0 end),0) as PropinaCont,
+
+isnull(sum(case when (c_efectivo+c_tarjeta+c_tarjeta2+c_cheque)=0 then total_en_ventas-total_en_descuentos else 0 end),0) as ventascre,
+isnull(sum(case when (c_efectivo+c_tarjeta+c_tarjeta2+c_cheque)=0 then total_neto else 0 end),0) as NetoCre,
+isnull(sum(case when (c_efectivo+c_tarjeta+c_tarjeta2+c_cheque)=0 then total_en_impuesto else 0 end),0) as Impuestocre,
+isnull(sum(case when (c_efectivo+c_tarjeta+c_tarjeta2+c_cheque)=0 then total_retencion else 0 end),0) as RetCre,
+isnull(sum(case when (c_efectivo+c_tarjeta+c_tarjeta2+c_cheque)=0 then total_en_descuentos else 0 end),0) as DescCre,
+isnull(sum(case when (c_efectivo+c_tarjeta+c_tarjeta2+c_cheque)=0 then totalservicio else 0 end),0) as PropinaCre,
+isnull(sum(c_propina),0) as PagoServicio, 
+isnull(sum(C_Efectivo + (D_Efectivo * Tipo_de_Cambio)),0) as efectivoCont, 
+isnull(sum(C_Tarjeta),0) as Aval, 
+isnull(sum(C_Tarjeta2),0) as Credomatic, 
+isnull(sum(c_cheque + (d_cheque*tipo_de_cambio)),0) as ChequesCont
+from facturas
+where turno=@turno and serie=@serie AND Anulada=0
+
+
+/*select Con.*, Cre.*  from 
+(select isnull(sum(Total_en_ventas - Total_en_descuentos ),0) as ventasCont, isnull(sum(total_neto),0) as NetoCont, isnull(sum(C_Iva_Contado + C_Iva_Tarjeta),0) as impuestoCont,isnull(sum(Total_en_impuesto),0) as impuesto, isnull(sum(c_propina),0) as PropinaCont,isnull(sum(totalServicio),0) as Servicio, isnull(sum(C_Efectivo + (D_Efectivo * Tipo_de_Cambio)),0) as efectivoCont,isnull(sum(C_Tarjeta),0) as Aval, isnull(sum(C_Tarjeta2),0) as Credomatic, isnull(sum(c_cheque + (d_cheque*tipo_de_cambio)),0) as ChequesCont, SUM (isnull(Total_en_Descuentos,0)) AS DescuentoCon  from facturas where anulada=0 and tipo=1 and codigosucursal=1 and turno=@Turno and serie=@Serie ) Con,
+(select isnull(sum(Total_en_ventas ),0) as ventasCre, isnull(sum(total_neto),0) as NetoCre, isnull(sum(Total_en_impuesto),0) as impuestoCre, isnull(sum(c_propina),0) as PropinaCre,isnull(sum(C_Efectivo + (D_Efectivo * Tipo_de_Cambio)),0) as efectivoCre,isnull(sum(C_Tarjeta + C_Tarjeta2 + D_tarjeta * Tipo_de_Cambio),0) as TarjetasCre, isnull(sum(c_cheque + (d_cheque*tipo_de_cambio)),0) as ChequesCre, SUM (isnull(Total_en_Descuentos,0)) AS DescuentoCre  from facturas where anulada=0 and tipo=2 and codigosucursal=1 and turno=@Turno and serie=@Serie )Cre
+*/
+GO
+

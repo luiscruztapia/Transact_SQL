@@ -1,0 +1,27 @@
+USE [xxDBxx]
+GO
+
+/****** Object:  StoredProcedure [dbo].[delete_Inventario_1]    ******/
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[delete_Inventario_1]') AND type in (N'P', N'PC'))
+DROP PROCEDURE [dbo].[delete_Inventario_1]
+GO
+
+USE [xxDBxx]
+GO
+
+/****** Object:  StoredProcedure [dbo].[delete_Inventario_1]    Script Date: 12/11/2022 19:44:13 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER OFF
+GO
+
+CREATE PROCEDURE [dbo].[delete_Inventario_1]
+	(@Codigo_1 	[varchar])
+
+AS DELETE [ElizondoNuevo].[dbo].[Inventario] 
+
+WHERE 
+	( [Codigo]	 = @Codigo_1)
+GO
+

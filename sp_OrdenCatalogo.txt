@@ -1,0 +1,23 @@
+USE [xxDBxx]
+GO
+
+/****** Object:  StoredProcedure [dbo].[sp_OrdenCatalogo]     ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[sp_OrdenCatalogo](@cMes varchar(2), @cAnio varchar(4)) AS
+declare @Mes int
+declare @Anio int
+set @Mes = convert(int, @cMes)
+set @Anio = convert(int, @cAnio)
+SELECT     dbo.Catalogo_Historico.*, dbo.CatImprimir.*, dbo.Catalogo_de_Cuentas.Descripcion, dbo.Catalogo_de_Cuentas.Descripcion_Ingles
+FROM         dbo.Catalogo_Historico INNER JOIN
+                      dbo.CatImprimir ON dbo.Catalogo_Historico.Cuenta = dbo.CatImprimir.Cta INNER JOIN
+                      dbo.Catalogo_de_Cuentas ON dbo.Catalogo_Historico.Cuenta = dbo.Catalogo_de_Cuentas.Cuenta
+WHERE     (dbo.Catalogo_Historico.Mes = @Mes) AND (dbo.Catalogo_Historico.Anio = @Anio) order by dbo.CatImprimir.orden
+
+GO
+

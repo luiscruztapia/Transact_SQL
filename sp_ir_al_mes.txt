@@ -1,0 +1,20 @@
+USE [xxDBxx]
+GO
+
+/****** Object:  StoredProcedure [dbo].[sp_ir_al_mes]     ******/
+SET ANSI_NULLS OFF
+GO
+
+SET QUOTED_IDENTIFIER OFF
+GO
+
+CREATE PROCEDURE [dbo].[sp_ir_al_mes](@codigosucursal int, @Mes int, @Anio integer)  AS
+update inventario_por_bodegas set
+u_saldo_inicial=0, s_saldo_inicial=0
+update inventario_por_bodegas set
+u_saldo_inicial=s.u_saldo_inicial,s_saldo_inicial=s.s_saldo_inicial
+from inventario_por_bodegas i, saldosiniciales s where
+i.codigo=s.codigo and i.bodega=s.bodega and s.mes=@Mes and s.anio=@Anio and i.codigosucursal=s.codigosucursal 
+and i.codigosucursal=@codigosucursal
+GO
+

@@ -1,0 +1,26 @@
+USE [xxDBxx]
+GO
+
+/****** Object:  StoredProcedure [dbo].[sp_consulta_Facturasyretencion]    ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER OFF
+GO
+
+CREATE PROCEDURE [dbo].[sp_consulta_Facturasyretencion]
+	(@codigosucursal int,
+	@TipoDoc 	tinyint,
+	 @Tipo 	tinyint,
+	 @Numero_de_Documento 	varchar(10),
+	 @Serie 	varchar(1))
+
+AS select * from [dbo].[cFacturas_y_retencion] 
+WHERE 
+	( codigosucursal=@codigosucursal and
+	[TipoDoc]	 = @TipoDoc AND
+	 [Tipo]	 = @Tipo AND
+	 [Numero_de_Documento]	 = @Numero_de_Documento AND
+	 [Serie]	 = @Serie)
+GO
+

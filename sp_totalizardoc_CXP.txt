@@ -1,0 +1,32 @@
+USE [xxDBxx]
+GO
+
+/****** Object:  StoredProcedure [dbo].[sp_totalizardoc_CXP]   ******/
+SET ANSI_NULLS OFF
+GO
+
+SET QUOTED_IDENTIFIER OFF
+GO
+
+CREATE PROCEDURE [dbo].[sp_totalizardoc_CXP](@codigosucursal int, @tiporecibo int, @codigorecibo varchar(10)) AS
+/*actualiza las facturas que estan en un recibo especifico */
+
+update cuentas_por_pagar 
+set totalrecibo=(select isnull(sum(abono),0) from detalle_cxp where
+	detalle_cxp.codigo_recibo=cuentas_por_pagar.codigo_recibo and
+	detalle_cxp.tiporecibo=cuentas_por_pagar.tiporecibo and detalle_cxp.codigosucursal=cuentas_por_pagar.codigosucursal) + (select isnull(sum(abono),0) from detalle_cxp_nd where
+	detalle_cxp_nd.codigo_recibo=cuentas_por_pagar.codigo_recibo and
+	detalle_cxp_nd.tiporecibo=cuentas_por_pagar.tiporecibo and detalle_cxp_nd.codigosucursal=cuentas_por_pagar.codigosucursal),
+ total_retencion=(select isnull(sum(retencion),0) from detalle_cxp where
+	detalle_cxp.codigo_recibo=cuentas_por_pagar.codigo_recibo and
+	detalle_cxp.tiporecibo=cuentas_por_pagar.tiporecibo and detalle_cxp.codigosucursal=cuentas_por_pagar.codigosucursal) + (select isnull(sum(retencion),0) from detalle_cxp_nd where
+	detalle_cxp_nd.codigo_recibo=cuentas_por_pagar.codigo_recibo and
+	detalle_cxp_nd.tiporecibo=cuentas_por_pagar.tiporecibo and detalle_cxp_nd.codigosucursal=cuentas_por_pagar.codigosucursal),
+total_descuento=(select isnull(sum(descuento),0) from detalle_cxp where
+	detalle_cxp.codigo_recibo=cuentas_por_pagar.codigo_recibo and
+	detalle_cxp.tiporecibo=cuentas_por_pagar.tiporecibo and detalle_cxp.codigosucursal=cuentas_por_pagar.codigosucursal) + (select isnull(sum(descuento),0) from detalle_cxp_nd where
+	detalle_cxp_nd.codigo_recibo=cuentas_por_pagar.codigo_recibo and
+	detalle_cxp_nd.tiporecibo=cuentas_por_pagar.tiporecibo and detalle_cxp_nd.codigosucursal=cuentas_por_pagar.codigosucursal)
+from cuentas_por_pagar where codigo_recibo=@codigorecibo and tiporecibo=@tiporecibo and codigosucursal=@codigosucursal
+GO
+

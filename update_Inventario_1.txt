@@ -1,0 +1,110 @@
+USE [xxDBxx]
+GO
+
+/****** Object:  StoredProcedure [dbo].[update_Inventario_1]    ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER OFF
+GO
+
+CREATE PROCEDURE [dbo].[update_Inventario_1]
+	(@Codigo_1 	[varchar],
+	 @Codigo_2 	[varchar](15),
+	 @Servicio_3 	[tinyint],
+	 @Codigo_Departamento_4 	[varchar](2),
+	 @Codigo_Clase_5 	[varchar](5),
+	 @Codigo_Anterior_6 	[varchar](20),
+	 @Nombre_7 	[varchar](255),
+	 @Unidad_de_Medida_8 	[int],
+	 @Presentacion_9 	[int],
+	 @Codigo_Marca_10 	[varchar](10),
+	 @No_Estante_11 	[varchar](10),
+	 @Proveedor_12 	[varchar](5),
+	 @NombreGenerico_13 	[varchar](50),
+	 @Cantidad_Minima_14 	[float],
+	 @Cantidad_Maxima_15 	[float],
+	 @Precio_Venta_16 	[money],
+	 @Precio_Venta_Dolares_17 	[money],
+	 @Precio_Venta_2_18 	[money],
+	 @Precio_Venta_Dolares_2_19 	[money],
+	 @Precio_Venta_3_20 	[money],
+	 @Precio_Venta_Dolares_3_21 	[money],
+	 @Precio_Venta_4_22 	[money],
+	 @Precio_Venta_Dolares_4_23 	[money],
+	 @Precio_Venta_5_24 	[money],
+	 @Precio_Venta_Dolares_5_25 	[money],
+	 @Codigo_Vinculo_26 	[int],
+	 @Control_de_Vencimiento_27 	[bit],
+	 @Peso_28 	[int],
+	 @Cubico_29 	[int],
+	 @Porc_DAI_30 	[tinyint],
+	 @Porc_ATP_31 	[tinyint],
+	 @Porc_IEC_32 	[tinyint],
+	 @Descontinuado_33 	[bit],
+	 @CostoSugerido_34 	[money],
+	 @PrecioCosto_35 	[money],
+	 @PrecioCostoDolar_36 	[money],
+	 @IsPaquete_37 	[bit],
+	 @Unidades_38 	[int],
+	 @UnidadesR_39 	[int],
+	 @CantidadVendida_40 	[bigint],
+	 @CostoProm_41 	[money],
+	 @Ismodificado_CostoSugerido_42 	[bit],
+	 @FechaIngreso_43 	[datetime],
+	 @RequiereSerie_44 	[bit],
+	 @CodigoImpuesto_45 	[varchar](20),
+	 @Imagen_46 	[varchar](50))
+
+AS UPDATE [ElizondoNuevo].[dbo].[Inventario] 
+
+SET  [Codigo]	 = @Codigo_2,
+	 [Servicio]	 = @Servicio_3,
+	 [Codigo_Departamento]	 = @Codigo_Departamento_4,
+	 [Codigo_Clase]	 = @Codigo_Clase_5,
+	 [Codigo_Anterior]	 = @Codigo_Anterior_6,
+	 [Nombre]	 = @Nombre_7,
+	 [Unidad_de_Medida]	 = @Unidad_de_Medida_8,
+	 [Presentacion]	 = @Presentacion_9,
+	 [Codigo_Marca]	 = @Codigo_Marca_10,
+	 [No_Estante]	 = @No_Estante_11,
+	 [Proveedor]	 = @Proveedor_12,
+	 [NombreGenerico]	 = @NombreGenerico_13,
+	 [Cantidad_Minima]	 = @Cantidad_Minima_14,
+	 [Cantidad_Maxima]	 = @Cantidad_Maxima_15,
+	 [Precio_Venta]	 = @Precio_Venta_16,
+	 [Precio_Venta_Dolares]	 = @Precio_Venta_Dolares_17,
+	 [Precio_Venta_2]	 = @Precio_Venta_2_18,
+	 [Precio_Venta_Dolares_2]	 = @Precio_Venta_Dolares_2_19,
+	 [Precio_Venta_3]	 = @Precio_Venta_3_20,
+	 [Precio_Venta_Dolares_3]	 = @Precio_Venta_Dolares_3_21,
+	 [Precio_Venta_4]	 = @Precio_Venta_4_22,
+	 [Precio_Venta_Dolares_4]	 = @Precio_Venta_Dolares_4_23,
+	 [Precio_Venta_5]	 = @Precio_Venta_5_24,
+	 [Precio_Venta_Dolares_5]	 = @Precio_Venta_Dolares_5_25,
+	 [Codigo_Vinculo]	 = @Codigo_Vinculo_26,
+	 [Control_de_Vencimiento]	 = @Control_de_Vencimiento_27,
+	 [Peso]	 = @Peso_28,
+	 [Cubico]	 = @Cubico_29,
+	 [Porc_DAI]	 = @Porc_DAI_30,
+	 [Porc_ATP]	 = @Porc_ATP_31,
+	 [Porc_IEC]	 = @Porc_IEC_32,
+	 [Descontinuado]	 = @Descontinuado_33,
+	 [CostoSugerido]	 = @CostoSugerido_34,
+	 [PrecioCosto]	 = @PrecioCosto_35,
+	 [PrecioCostoDolar]	 = @PrecioCostoDolar_36,
+	 [IsPaquete]	 = @IsPaquete_37,
+	 [Unidades]	 = @Unidades_38,
+	 [UnidadesR]	 = @UnidadesR_39,
+	 [CantidadVendida]	 = @CantidadVendida_40,
+	 [CostoProm]	 = @CostoProm_41,
+	 [Ismodificado_CostoSugerido]	 = @Ismodificado_CostoSugerido_42,
+	 [FechaIngreso]	 = @FechaIngreso_43,
+	 [RequiereSerie]	 = @RequiereSerie_44,
+	 [CodigoImpuesto]	 = @CodigoImpuesto_45,
+	 [Imagen]	 = @Imagen_46 
+
+WHERE 
+	( [Codigo]	 = @Codigo_1)
+GO
+

@@ -1,0 +1,43 @@
+USE [xxDBxx]
+GO
+
+/****** Object:  StoredProcedure [dbo].[sp_Diario2]    ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[sp_Diario2] (@FechaIni as Varchar(10), @FechaFin as varchar(10), @Mes as int, @Anio as int) AS
+
+Delete From Diario
+
+INSERT INTO [Diario]([CodigoSucursal], [Bodega], [CodigoProducto])
+SELECT [CodigoSucursal], [Bodega], [Codigo] FROM [Inventario_por_Bodegas]
+
+update Diario set
+USI =  (
+		select isnull(sum(df.U_Saldo_Inicial),0)
+		FROM saldosiniciales df
+		where diario.codigosucursal=df.codigosucursal and diario.bodega = df.bodega and
+		 df.codigo = diario.codigoproducto and df.Mes=@Mes and df.Anio=@Anio)
+
+
+
+
+update Diario set 
+Clase= (
+            SELECT  [CoClases] FROM [cInventarioNDepartamentoNClase] df
+	where Diario.CodigoProducto=df.Codigo)
+
+update Diario set 
+Departamento= (
+		Select [CoDepto] FROM [cInventarioNDepartamentoNClase] df
+		where Diario.CodigoProducto = df.Codigo)
+
+
+
+
+exec sp_ContabilizarDiario @FechaIni, @FechaFin
+GO
+

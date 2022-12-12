@@ -1,0 +1,29 @@
+USE [xxDBxx]
+GO
+
+/****** Object:  StoredProcedure [dbo].[sp_VentasDeptosClasesMar]     ******/
+SET ANSI_NULLS OFF
+GO
+
+SET QUOTED_IDENTIFIER OFF
+GO
+
+CREATE PROCEDURE [dbo].[sp_VentasDeptosClasesMar] AS
+select ventas.*, departamentos.Nombre NombreDepto, clases.Nombre NombreClase, Marcas.Nombre NombreMarca from
+(SELECT  Inventario.Codigo_Departamento, Inventario.Codigo_Clase,Inventario.Codigo_Marca, sum(Detalle_Facturas.Costos) costos, 
+	sum(Detalle_Facturas.Precio_Unitario*Detalle_Facturas.Cantidad) as ventas,
+	sum(case when detalle_facturas.tipo=1 then Detalle_Facturas.Precio_Unitario*Detalle_Facturas.Cantidad else 0 end) as ventascontado,
+	sum(case when detalle_facturas.tipo=2 then Detalle_Facturas.Precio_Unitario*Detalle_Facturas.Cantidad else 0 end) as ventascredito
+FROM  dbo.Inventario INNER JOIN
+      dbo.Detalle_Facturas INNER JOIN
+      dbo.Facturas ON dbo.Detalle_Facturas.TipoDoc = dbo.Facturas.TipoDoc AND dbo.Detalle_Facturas.Tipo = dbo.Facturas.Tipo AND 
+      dbo.Detalle_Facturas.Codigo_Factura = dbo.Facturas.Numero_de_Documento AND dbo.Detalle_Facturas.Serie = dbo.Facturas.Serie ON 
+      dbo.Inventario.Codigo = dbo.Detalle_Facturas.Codigo_Producto
+      where facturas.anulada=0 and facturas.fecha between '10/1/03' and '12/1/03' and detalle_facturas.bodega>=1 and detalle_facturas.bodega<=15
+      group by inventario.codigo_departamento, inventario.codigo_clase, inventario.codigo_marca) ventas, departamentos, clases_de_productos clases,Marcas
+      where ventas.codigo_Departamento=Departamentos.Codigo_Departamento and
+      ventas.codigo_Departamento=Clases.Codigo_Departamento and
+      ventas.codigo_marca = Marcas.Codigo_Marca and
+      ventas.codigo_clase=Clases.Codigo_clase order by ventas.codigo_departamento, ventas.codigo_clase
+GO
+

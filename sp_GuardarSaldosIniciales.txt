@@ -1,0 +1,24 @@
+USE [xxDBxx]
+GO
+
+/****** Object:  StoredProcedure [dbo].[sp_GuardarSaldosIniciales]   ******/
+SET ANSI_NULLS OFF
+GO
+
+SET QUOTED_IDENTIFIER OFF
+GO
+
+CREATE PROCEDURE [dbo].[sp_GuardarSaldosIniciales](@codigosucursal int, @Mes int, @Anio integer)  AS
+
+delete from SaldosIniciales where codigosucursal=@codigosucursal and Anio=@Anio and Mes=@Mes
+insert into SaldosIniciales (codigosucursal, Bodega, Codigo, Mes, Anio, U_Saldo_Inicial, 
+S_Saldo_Inicial, Costopromedio, Precio_Costo,   U_Compras_Mes, S_Compras_Mes, U_Entradas_Mes, S_Entradas_Mes, U_Salidas_Mes, S_Salidas_Mes, U_Transferencias_Mes, 
+                      S_Transferencias_Mes, U_Bonificaciones_Mes, S_Bonificaciones_Mes, U_Ventas_Mes, S_Ventas_Mes, S_VVentas_Mes, 
+                      U_DevClientes_Mes, S_DevClientes_Mes, U_DevProv_Mes, S_DevProv_Mes, Existencia) 
+(select codigosucursal, bodega, codigo, @Mes, @Anio, U_Saldo_Inicial, 
+S_Saldo_Inicial, CostoPromedio, Precio_Costo, U_Compras_Mes, S_Compras_Mes, U_Entradas_Mes, S_Entradas_Mes, U_Salidas_Mes, S_Salidas_Mes, U_Transferencias_Mes, 
+                      S_Transferencias_Mes, U_Bonificaciones_Mes, S_Bonificaciones_Mes, U_Ventas_Mes, S_Ventas_Mes, S_VVentas_Mes, 
+                      U_DevClientes_Mes, S_DevClientes_Mes, U_DevProv_Mes, S_DevProv_Mes, Existencia
+ from inventario_por_bodegas where codigosucursal=@codigosucursal)
+GO
+

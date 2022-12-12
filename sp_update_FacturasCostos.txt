@@ -1,0 +1,30 @@
+USE [xxDBxx]
+GO
+
+/****** Object:  StoredProcedure [dbo].[sp_update_FacturasCostos]   ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER OFF
+GO
+
+CREATE PROCEDURE [dbo].[sp_update_FacturasCostos]
+	(@codigosucursal int, 
+	@TipoDoc_1 	[tinyint],
+	 @Tipo_2 	[tinyint],
+	 @Numero_de_Documento_3 	[varchar](10),
+	 @Serie_4 	[varchar](1),
+	 @Total_en_Costos_5 	[money])
+
+AS UPDATE [Facturas] 
+
+SET  [Total_en_Costos]	 = @Total_en_Costos_5 
+
+WHERE 
+	( codigosucursal = @codigosucursal AND
+	[TipoDoc]	 = @TipoDoc_1 AND
+	 [Tipo]	 = @Tipo_2 AND
+	 [Numero_de_Documento]	 = @Numero_de_Documento_3 AND
+	 [Serie]	 = @Serie_4)
+GO
+

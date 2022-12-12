@@ -1,0 +1,209 @@
+USE [xxDBxx]
+GO
+
+/****** Object:  StoredProcedure [dbo].[sp_ActualizarInventarioFisico]    ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[sp_ActualizarInventarioFisico]( @codigosucursal int, @fechainicial varchar(8), @FechaFinal varchar(8))  AS
+update inventario_por_bodegas set
+U_ventas_anteriores=0,
+S_ventas_anteriores=0,
+U_entradas_anteriores=0,
+S_entradas_anteriores=0,
+U_salidas_anteriores=0,
+S_salidas_anteriores=0,
+U_compras_anteriores=0,
+S_compras_anteriores=0,
+U_Bonificaciones_anteriores=0,
+S_Bonificaciones_anteriores=0,
+U_Transferencias_anteriores=0,
+S_transferencias_anteriores=0,
+U_devClientes_anteriores=0,
+S_devClientes_anteriores=0,
+U_devProv_anteriores=0,
+S_devProv_anteriores=0
+where codigosucursal=@codigosucursal
+/*FACTURAS
+*/
+update inventario_por_bodegas set
+U_ventas_anteriores =  (
+		select isnull(sum(df.cantidad), 0)
+		FROM detalle_facturas df, facturas f
+		where inventario_por_bodegas.codigosucursal=df.codigosucursal and inventario_por_bodegas.bodega = df.bodega and
+		inventario_por_bodegas.codigo = df.codigo_producto and
+		f.numero_de_documento=df.codigo_factura and
+		f.tipo=df.tipo and
+		f.tipodoc=df.tipodoc and
+		f.serie=df.serie and
+		f.codigosucursal=df.codigosucursal and 
+		f.fecha >=@FechaInicial and f.fecha<@FechaFinal and f.anulada=0) where codigoSucursal=@codigoSucursal
+update inventario_por_bodegas set
+S_ventas_Anteriores =  (
+		select isnull(sum(df.costos),0)
+		FROM detalle_facturas df, facturas f
+		where inventario_por_bodegas.codigosucursal=df.codigosucursal and inventario_por_bodegas.bodega = df.bodega and
+		inventario_por_bodegas.codigo = df.codigo_producto and
+		f.numero_de_documento=df.codigo_factura and
+		f.tipo=df.tipo and
+		f.tipodoc=df.tipodoc and
+		f.serie=df.serie and
+		f.codigosucursal=df.codigosucursal and 
+		f.fecha >=@FechaInicial and f.fecha<@FechaFinal and f.anulada=0) where codigoSucursal=@codigoSucursal
+
+/*update inventario_por_bodegas set
+S_vventas_anterior =  (
+		select isnull(sum(precio_unitario*cantidad),0)
+		FROM detalle_facturas df, facturas f
+		where inventario_por_bodegas.codigosucursal=df.codigosucursal and inventario_por_bodegas.bodega = df.bodega and
+		inventario_por_bodegas.codigo = df.codigo_producto and
+		f.numero_de_documento=df.codigo_factura and
+		f.tipo=df.tipo and
+		f.tipodoc=df.tipodoc and
+		f.serie=df.serie and
+		f.codigosucursal=df.codigosucursal and 
+		f.fecha >=@FechaInicial and f.fecha<@FechaFinal and f.anulada=0) where codigoSucursal=@codigoSucursal
+*/
+
+update inventario_por_bodegas set
+U_bonificaciones_anteriores =  (
+		select isnull(sum(df.cantidadbonificada),0)
+		FROM detalle_facturas df, facturas f
+		where inventario_por_bodegas.codigosucursal=df.codigosucursal and inventario_por_bodegas.bodega = df.bodega and
+		inventario_por_bodegas.codigo = df.codigo_producto and
+		f.numero_de_documento=df.codigo_factura and
+		f.tipo=df.tipo and
+		f.tipodoc=df.tipodoc and
+		f.serie=df.serie and
+		f.codigosucursal=df.codigosucursal and 
+		f.fecha >=@FechaInicial and f.fecha<@FechaFinal and f.anulada=0) where codigoSucursal=@codigoSucursal
+update inventario_por_bodegas set
+S_Compras_anteriores =  (
+		select isnull(sum((df.precio_unitario*df.cantidad) - df.descuento) ,0)
+		FROM detalle_Compras df, Compras f
+		where inventario_por_bodegas.codigosucursal=df.codigosucursal and inventario_por_bodegas.bodega = df.bodega and
+		 inventario_por_bodegas.codigo = df.codigo_producto and
+		f.numero_de_documento=df.codigo_factura and
+		f.tipo=df.tipo and
+		f.codigo_proveedor=df.codigo_proveedor and
+		f.codigosucursal=df.codigosucursal and 
+		f.fecha >=@FechaInicial and f.fecha<@FechaFinal and f.anulada=0) where codigoSucursal=@codigoSucursal
+update inventario_por_bodegas set
+U_Compras_anteriores =  (
+		select isnull(sum(df.cantidad+df.CantidadBonif),0)
+		FROM detalle_Compras df, Compras f
+		where inventario_por_bodegas.codigosucursal=df.codigosucursal and inventario_por_bodegas.bodega = df.bodega and
+		inventario_por_bodegas.codigo = df.codigo_producto and
+		f.numero_de_documento=df.codigo_factura and
+		f.tipo=df.tipo and
+		f.codigo_proveedor=df.codigo_proveedor and
+		f.codigosucursal=df.codigosucursal and 
+		f.fecha >=@FechaInicial and f.fecha<@FechaFinal and f.anulada=0) where codigoSucursal=@codigoSucursal
+update inventario_por_bodegas set
+U_Entradas_anteriores =  (
+		select isnull(sum(df.cantidad),0)
+		FROM detalle_de_Entradas df, Entrada_de_Productos f
+		where inventario_por_bodegas.codigosucursal=df.codigosucursal and inventario_por_bodegas.bodega = df.bodega and
+		inventario_por_bodegas.codigo = df.codigo_producto and
+		f.numero_de_documento=df.codigo_factura and
+		f.codigosucursal=df.codigosucursal and 
+		f.fecha >=@FechaInicial and f.fecha<@FechaFinal and f.anulada=0) where codigoSucursal=@codigoSucursal
+update inventario_por_bodegas set
+S_Entradas_Anteriores =  (
+		select isnull(sum(df.cantidad*df.precio_unitario),0)
+		FROM detalle_de_Entradas df, Entrada_de_Productos f
+		where inventario_por_bodegas.codigosucursal=df.codigosucursal and inventario_por_bodegas.bodega = df.bodega and
+		inventario_por_bodegas.codigo = df.codigo_producto and
+		f.numero_de_documento=df.codigo_factura and
+		f.codigosucursal=df.codigosucursal and 
+		f.fecha >=@FechaInicial and f.fecha<@FechaFinal and f.anulada=0) where codigoSucursal=@codigoSucursal
+update inventario_por_bodegas set
+U_Salidas_anteriores =  (
+		select isnull(sum(df.cantidad),0)
+		FROM detalle_de_Salidas df, Salida_de_Productos f
+		where inventario_por_bodegas.codigosucursal=df.codigosucursal and inventario_por_bodegas.bodega = df.bodega and
+		inventario_por_bodegas.codigo = df.codigo_producto and
+		f.numero_de_documento=df.codigo_factura and
+		f.codigosucursal=df.codigosucursal and 
+		f.fecha >=@FechaInicial and f.fecha<@FechaFinal and f.anulada=0) where codigoSucursal=@codigoSucursal
+update inventario_por_bodegas set
+S_Salidas_anteriores =  (
+		select isnull(sum(df.cantidad*df.precio_unitario),0)
+		FROM detalle_de_Salidas df, Salida_de_Productos f
+		where inventario_por_bodegas.codigosucursal=df.codigosucursal and inventario_por_bodegas.bodega = df.bodega and
+		inventario_por_bodegas.codigo = df.codigo_producto and
+		f.numero_de_documento=df.codigo_factura and
+		f.codigosucursal=df.codigosucursal and 
+		f.fecha >=@FechaInicial and f.fecha<@FechaFinal and f.anulada=0) where codigoSucursal=@codigoSucursal
+update inventario_por_bodegas set
+U_Transferencias_anteriores =  (
+		select isnull(sum(df.cantidad),0)
+		FROM detalle_de_Transferencias df, Transferencias f
+		where inventario_por_bodegas.codigosucursal=df.codigosucursal and inventario_por_bodegas.bodega = df.bodega and
+		inventario_por_bodegas.codigo = df.codigo_producto and
+		f.numero_de_documento=df.codigo_factura and
+		f.codigosucursal=df.codigosucursal and 
+		f.fecha >=@FechaInicial and f.fecha<@FechaFinal and f.anulada=0) where codigoSucursal=@codigoSucursal
+update inventario_por_bodegas set
+S_Transferencias_anteriores =  (
+		select isnull(sum(df.cantidad*df.precio_unitario),0)
+		FROM detalle_de_Transferencias df, Transferencias f
+		where inventario_por_bodegas.codigosucursal=df.codigosucursal and inventario_por_bodegas.bodega = df.bodega and
+		inventario_por_bodegas.codigo = df.codigo_producto and
+		f.numero_de_documento=df.codigo_factura and
+		f.codigosucursal=df.codigosucursal and 
+		f.fecha >=@FechaInicial and f.fecha<@FechaFinal and f.anulada=0) where codigoSucursal=@codigoSucursal
+update inventario_por_bodegas set
+U_DevClientes_anteriores =  (
+		select isnull(sum(df.cantidad),0)
+		FROM detalle_Devoluciones_Clientes df, Devoluciones_Clientes f
+		where inventario_por_bodegas.codigosucursal=df.codigosucursal and inventario_por_bodegas.bodega = df.bodega and
+		inventario_por_bodegas.codigo = df.codigo_producto and
+		f.numero_de_documento=df.codigo_factura and
+		f.codigosucursal=df.codigosucursal and 
+		f.fecha >=@FechaInicial and f.fecha<@FechaFinal and f.anulada=0) where codigoSucursal=@codigoSucursal
+update inventario_por_bodegas set
+S_DevClientes_anteriores =  (
+		select isnull(sum(df.cantidad*df.precio_unitario),0)
+		FROM detalle_Devoluciones_Clientes df, Devoluciones_Clientes f
+		where inventario_por_bodegas.codigosucursal=df.codigosucursal and inventario_por_bodegas.bodega = df.bodega and
+		inventario_por_bodegas.codigo = df.codigo_producto and
+		f.numero_de_documento=df.codigo_factura and
+		f.codigosucursal=df.codigosucursal and 
+		f.fecha >=@FechaInicial and f.fecha<@FechaFinal and f.anulada=0) where codigoSucursal=@codigoSucursal
+update inventario_por_bodegas set
+U_DevProv_anteriores =  (
+		select isnull(sum(df.cantidad),0)
+		FROM detalle_Devoluciones_Proveedores df, Devoluciones_Proveedores f
+		where inventario_por_bodegas.codigosucursal=df.codigosucursal and inventario_por_bodegas.bodega = df.bodega and
+		inventario_por_bodegas.codigo = df.codigo_producto and
+		f.numero_de_documento=df.codigo_factura and
+		f.codigosucursal=df.codigosucursal and 
+		f.fecha >=@FechaInicial and f.fecha<@FechaFinal and f.anulada=0) where codigoSucursal=@codigoSucursal
+update inventario_por_bodegas set
+S_DevProv_anteriores =  (
+		select isnull(sum(df.cantidad*df.precio_unitario),0)
+		FROM detalle_Devoluciones_Proveedores df, Devoluciones_Proveedores f
+		where inventario_por_bodegas.codigosucursal=df.codigosucursal and inventario_por_bodegas.bodega = df.bodega and
+		inventario_por_bodegas.codigo = df.codigo_producto and
+		f.numero_de_documento=df.codigo_factura and
+		f.codigosucursal=df.codigosucursal and 
+		f.fecha >=@FechaInicial and f.fecha<@FechaFinal and f.anulada=0) where codigoSucursal=@codigoSucursal
+update inventario_por_bodegas set
+ExistenciaAl = U_saldo_inicial+U_entradas_anteriores +
+U_compras_anteriores-
+U_ventas_anteriores -
+U_salidas_anteriores -
+U_Bonificaciones_anteriores -
+U_Transferencias_anteriores +
+U_devClientes_anteriores - 
+U_devProv_anteriores where codigoSucursal=@codigosucursal
+
+update inventario_por_bodegas set
+Existencia=0, U_Saldo_Inicial=0, S_Saldo_Inicial=0 from inventario, inventario_por_bodegas where inventario.codigo=Inventario_por_bodegas.codigo and inventario.Servicio=2
+
+
+GO
